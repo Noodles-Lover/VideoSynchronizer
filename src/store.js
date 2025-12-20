@@ -10,7 +10,9 @@ export const store = reactive({
   viewerColor: '#3498db', // 蓝色
   animeColor: '#e74c3c',  // 红色
   forcedTop: 'none',
-  fullScreen: 'none'
+  fullScreen: 'none',
+  settingsPosition: 'right', // 'left' or 'right'
+  settingsOpacity: 0.85
 })
 
 watch(() => store.fullScreen, (newVal) => {
