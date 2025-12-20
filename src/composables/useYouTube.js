@@ -25,11 +25,35 @@ export function useYouTube() {
     }
   }
 
+  // 提取 YouTube 時間戳（秒）
+  const getYouTubeTimestamp = (url) => {
+    if (!url) return 0
+    try {
+      const u = new URL(url.includes('://') ? url : 'https://' + url)
+      const t = u.searchParams.get('t')
+      if (t) {
+        // 處理 3750s 或 3750 格式
+        return parseInt(t.toString().replace('s', '')) || 0
+      }
+      return 0
+    } catch (e) {
+      return 0
+    }
+  }
+
   // 新增：構建 YouTube embed URL（恢復第一版顯示邏輯）
-  const buildYouTubeEmbed = (url) => {
+  const buildYouTubeEmbed = (url, startTime = 0) => {
     const id = getYouTubeId(url)
     if (!id) return ''
-    const params = new URLSearchParams({ controls: '1', modestbranding: '1', rel: '0', playsinline: '1' })
+    const params = new URLSearchParams({ 
+      controls: '1', 
+      modestbranding: '1', 
+      rel: '0', 
+      playsinline: '1' 
+    })
+    if (startTime > 0) {
+      params.append('start', startTime.toString())
+    }
     return `https://www.youtube.com/embed/${id}?${params.toString()}`
   }
 
@@ -38,6 +62,7 @@ export function useYouTube() {
 
   return {
     getYouTubeId,
+    getYouTubeTimestamp,
     buildYouTubeEmbed,
     isYouTube,
   }

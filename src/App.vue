@@ -33,6 +33,8 @@ const {
         :win="win"
         :paneId="win.id"
         :videoUrl="win.id === 'viewer' ? store.viewerUrl : store.animeUrl"
+        :startTime="win.id === 'viewer' ? store.viewerStartTime : store.animeStartTime"
+        :bgColor="win.id === 'viewer' ? store.viewerColor : store.animeColor"
         :onPaneMouseDown="onPaneMouseDown"
         :onResizeMouseDown="onResizeMouseDown"
         :class="{ 'is-fullscreen': store.fullScreen === win.id }"
@@ -55,5 +57,7 @@ const {
   transform: none !important;
 }
 </style>
+
+
 
 

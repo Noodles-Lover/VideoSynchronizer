@@ -2,12 +2,13 @@ import { reactive, watch } from 'vue'
 
 export const store = reactive({
   viewerUrl: '',
+  viewerStartTime: 0,
   animeUrl: '',
-  forcedTop: 'none', // 'none', 'viewer', 'anime'
-  fullScreen: 'none', // 'none', 'viewer', 'anime'
+  animeStartTime: 0,
+  viewerColor: '#3498db', // 蓝色
+  animeColor: '#e74c3c'  // 红色
 })
 
-// 當全屏狀態改變時，自動調整強制置頂
 watch(() => store.fullScreen, (newVal) => {
   if (newVal === 'viewer') {
     // 全屏視聽方時，自動置頂動漫方
@@ -17,3 +18,5 @@ watch(() => store.fullScreen, (newVal) => {
     store.forcedTop = 'viewer'
   }
 })
+
+
