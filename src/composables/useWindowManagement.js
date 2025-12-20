@@ -7,12 +7,37 @@ export function useWindowManagement() {
     { id: 'anime',  x: 540, y: 80, w: 480, h: 270, z: 1 },
   ])
 
+  const forcedTop = ref('none') // 'none', 'viewer', 'anime'
+
   const bringToFront = (id) => {
+    if (forcedTop.value !== 'none' && id !== forcedTop.value) {
+      // 如果有強制置頂，且當前點擊的不是置頂窗口，則不改變層級（或者確保置頂窗口依然最高）
+      const topWin = windows.value.find(w => w.id === forcedTop.value)
+      const otherWin = windows.value.find(w => w.id === id)
+      if (topWin && otherWin) {
+        otherWin.z = 1
+        topWin.z = 2
+      }
+      return
+    }
+    
     const maxZ = Math.max(...windows.value.map(w => w.z))
     const win = windows.value.find(w => w.id === id)
     if (win) win.z = maxZ + 1
   }
 
+  const setForcedTop = (val) => {
+    forcedTop.value = val
+    if (val === 'viewer') {
+      const v = windows.value.find(w => w.id === 'viewer')
+      const a = windows.value.find(w => w.id === 'anime')
+      if (v && a) { v.z = 2; a.z = 1; }
+    } else if (val === 'anime') {
+      const v = windows.value.find(w => w.id === 'viewer')
+      const a = windows.value.find(w => w.id === 'anime')
+      if (v && a) { v.z = 1; a.z = 2; }
+    }
+  }
   const drag = reactive({
     isDragging: false,
     dragId: null,
@@ -79,6 +104,8 @@ export function useWindowManagement() {
 
   return {
     windows,
+    forcedTop,
+    setForcedTop,
     bringToFront,
     onPaneMouseDown,
     onResizeMouseDown,

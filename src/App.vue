@@ -15,7 +15,7 @@ const state = reactive({
 const { getYouTubeId, buildYouTubeEmbed, isYouTube } = useYouTube()
 
 // 窗口系统：自由拖动/缩放/重叠（无可见外框）
-const { windows, bringToFront, onPaneMouseDown, onResizeMouseDown, onWindowsMouseMove, onWindowsMouseUp } = useWindowManagement()
+const { windows, forcedTop, setForcedTop, bringToFront, onPaneMouseDown, onResizeMouseDown, onWindowsMouseMove, onWindowsMouseUp } = useWindowManagement()
 
 // 设置面板可见性
 const showSettings = ref(true)
@@ -27,8 +27,10 @@ const showSettings = ref(true)
     <SettingsPanel
       :viewerUrl="state.viewer"
       :animeUrl="state.anime"
+      :forcedTop="forcedTop"
       @update:viewerUrl="state.viewer = $event"
       @update:animeUrl="state.anime = $event"
+      @update:forcedTop="setForcedTop"
     />
 
     <!-- 可拖拽/缩放/重叠窗口容器 -->
