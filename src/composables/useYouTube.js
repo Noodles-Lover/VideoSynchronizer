@@ -16,6 +16,9 @@ export function useYouTube() {
       if (u.pathname.startsWith('/embed/')) {
         return u.pathname.split('/embed/')[1]?.split('/')[0] || ''
       }
+      if (u.pathname.startsWith('/live/')) {
+        return u.pathname.split('/live/')[1]?.split('/')[0] || ''
+      }
       return ''
     } catch (e) {
       return ''
