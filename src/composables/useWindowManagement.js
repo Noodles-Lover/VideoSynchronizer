@@ -1,4 +1,5 @@
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
+import { store } from '../store'
 
 export function useWindowManagement() {
   // 窗口系统：自由拖动/缩放/重叠（无可见外框）
@@ -7,13 +8,10 @@ export function useWindowManagement() {
     { id: 'anime',  x: 540, y: 80, w: 480, h: 270, z: 1 },
   ])
 
-  const forcedTop = ref('none') // 'none', 'viewer', 'anime'
-  const fullScreen = ref('none') // 'none', 'viewer', 'anime'
-
   const bringToFront = (id) => {
-    if (forcedTop.value !== 'none' && id !== forcedTop.value) {
+    if (store.forcedTop !== 'none' && id !== store.forcedTop) {
       // 如果有強制置頂，且當前點擊的不是置頂窗口，則不改變層級（或者確保置頂窗口依然最高）
-      const topWin = windows.value.find(w => w.id === forcedTop.value)
+      const topWin = windows.value.find(w => w.id === store.forcedTop)
       const otherWin = windows.value.find(w => w.id === id)
       if (topWin && otherWin) {
         otherWin.z = 1
@@ -27,8 +25,8 @@ export function useWindowManagement() {
     if (win) win.z = maxZ + 1
   }
 
-  const setForcedTop = (val) => {
-    forcedTop.value = val
+  // 监听 store.forcedTop 变化并应用层级
+  watch(() => store.forcedTop, (val) => {
     if (val === 'viewer') {
       const v = windows.value.find(w => w.id === 'viewer')
       const a = windows.value.find(w => w.id === 'anime')
@@ -38,11 +36,7 @@ export function useWindowManagement() {
       const a = windows.value.find(w => w.id === 'anime')
       if (v && a) { v.z = 1; a.z = 2; }
     }
-  }
-
-  const setFullScreen = (val) => {
-    fullScreen.value = val
-  }
+  })
 
   const drag = reactive({
     isDragging: false,
@@ -58,8 +52,8 @@ export function useWindowManagement() {
   })
 
   const onPaneMouseDown = (win, e) => {
-    // 整個窗格可拖動（恢復第一版易用拖動），無需按鍵/模式
-    if (e.button !== 0 || fullScreen.value === win.id) return
+    // 整个窗格可拖动（恢复第一版易用拖动），无需按键/模式
+    if (e.button !== 0 || store.fullScreen === win.id) return
     bringToFront(win.id)
     drag.isDragging = true
     drag.dragId = win.id
@@ -70,7 +64,7 @@ export function useWindowManagement() {
   }
 
   const onResizeMouseDown = (win, e) => {
-    if (e.button !== 0 || fullScreen.value === win.id) return
+    if (e.button !== 0 || store.fullScreen === win.id) return
     drag.isResizing = true
     drag.resizeId = win.id
     drag.startMouseX = e.clientX
@@ -110,10 +104,6 @@ export function useWindowManagement() {
 
   return {
     windows,
-    forcedTop,
-    setForcedTop,
-    fullScreen,
-    setFullScreen,
     bringToFront,
     onPaneMouseDown,
     onResizeMouseDown,
