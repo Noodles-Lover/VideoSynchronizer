@@ -8,6 +8,7 @@ export function useWindowManagement() {
   ])
 
   const forcedTop = ref('none') // 'none', 'viewer', 'anime'
+  const fullScreen = ref('none') // 'none', 'viewer', 'anime'
 
   const bringToFront = (id) => {
     if (forcedTop.value !== 'none' && id !== forcedTop.value) {
@@ -38,6 +39,11 @@ export function useWindowManagement() {
       if (v && a) { v.z = 1; a.z = 2; }
     }
   }
+
+  const setFullScreen = (val) => {
+    fullScreen.value = val
+  }
+
   const drag = reactive({
     isDragging: false,
     dragId: null,
@@ -53,7 +59,7 @@ export function useWindowManagement() {
 
   const onPaneMouseDown = (win, e) => {
     // 整個窗格可拖動（恢復第一版易用拖動），無需按鍵/模式
-    if (e.button !== 0) return
+    if (e.button !== 0 || fullScreen.value === win.id) return
     bringToFront(win.id)
     drag.isDragging = true
     drag.dragId = win.id
@@ -64,7 +70,7 @@ export function useWindowManagement() {
   }
 
   const onResizeMouseDown = (win, e) => {
-    if (e.button !== 0) return
+    if (e.button !== 0 || fullScreen.value === win.id) return
     drag.isResizing = true
     drag.resizeId = win.id
     drag.startMouseX = e.clientX
@@ -106,6 +112,8 @@ export function useWindowManagement() {
     windows,
     forcedTop,
     setForcedTop,
+    fullScreen,
+    setFullScreen,
     bringToFront,
     onPaneMouseDown,
     onResizeMouseDown,

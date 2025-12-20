@@ -18,6 +18,14 @@
           <label><input type="radio" value="anime" v-model="state.forcedTop" /> 动漫方</label>
         </div>
       </div>
+      <div class="field">
+        <label>全屏显示</label>
+        <div class="radio-group">
+          <label><input type="radio" value="none" v-model="state.fullScreen" /> 无</label>
+          <label><input type="radio" value="viewer" v-model="state.fullScreen" /> 视听方</label>
+          <label><input type="radio" value="anime" v-model="state.fullScreen" /> 动漫方</label>
+        </div>
+      </div>
       <div class="hint">提示：視窗可自由拖曳與縮放。</div>
     </div>
   </div>
@@ -30,9 +38,10 @@ const props = defineProps({
   viewerUrl: String,
   animeUrl: String,
   forcedTop: String,
+  fullScreen: String,
 })
 
-const emit = defineEmits(['update:viewerUrl', 'update:animeUrl', 'update:forcedTop'])
+const emit = defineEmits(['update:viewerUrl', 'update:animeUrl', 'update:forcedTop', 'update:fullScreen'])
 
 const showSettings = ref(true)
 
@@ -40,15 +49,18 @@ const state = reactive({
   viewer: props.viewerUrl,
   anime: props.animeUrl,
   forcedTop: props.forcedTop || 'none',
+  fullScreen: props.fullScreen || 'none',
 })
 
 watch(() => props.viewerUrl, (newVal) => { state.viewer = newVal })
 watch(() => props.animeUrl, (newVal) => { state.anime = newVal })
 watch(() => props.forcedTop, (newVal) => { state.forcedTop = newVal })
+watch(() => props.fullScreen, (newVal) => { state.fullScreen = newVal })
 
 watch(() => state.viewer, (newVal) => { emit('update:viewerUrl', newVal) })
 watch(() => state.anime, (newVal) => { emit('update:animeUrl', newVal) })
 watch(() => state.forcedTop, (newVal) => { emit('update:forcedTop', newVal) })
+watch(() => state.fullScreen, (newVal) => { emit('update:fullScreen', newVal) })
 </script>
 
 <style scoped>
