@@ -1,12 +1,16 @@
 import { reactive, watch } from 'vue'
 
 export const store = reactive({
-  viewerUrl: '',
+  viewerRawUrl: '',
   viewerStartTime: 0,
-  animeUrl: '',
+  viewerEmbedUrl: '',
+  animeRawUrl: '',
   animeStartTime: 0,
+  animeEmbedUrl: '',
   viewerColor: '#3498db', // 蓝色
-  animeColor: '#e74c3c'  // 红色
+  animeColor: '#e74c3c',  // 红色
+  forcedTop: 'none',
+  fullScreen: 'none'
 })
 
 watch(() => store.fullScreen, (newVal) => {
@@ -18,5 +22,7 @@ watch(() => store.fullScreen, (newVal) => {
     store.forcedTop = 'viewer'
   }
 })
+
+
 
 

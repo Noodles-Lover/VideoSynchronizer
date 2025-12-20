@@ -11,8 +11,8 @@
       <div class="video-container">
         <template v-if="isYouTube(videoUrl)">
           <iframe
-            :key="getYouTubeId(videoUrl) + '_' + startTime"
-            :src="buildYouTubeEmbed(videoUrl, startTime)"
+            :key="videoUrl"
+            :src="videoUrl"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
@@ -29,18 +29,18 @@
 
 <script setup>
 import { useYouTube } from '../composables/useYouTube'
+import { store } from '../store'
 
 const props = defineProps({
   win: Object,
   paneId: String,
   videoUrl: String,
-  startTime: Number,
   bgColor: String,
   onPaneMouseDown: Function,
   onResizeMouseDown: Function
 })
 
-const { isYouTube, buildYouTubeEmbed, getYouTubeId } = useYouTube()
+const { isYouTube } = useYouTube()
 </script>
 
 <style scoped>

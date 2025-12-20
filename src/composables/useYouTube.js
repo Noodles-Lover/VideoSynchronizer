@@ -25,14 +25,14 @@ export function useYouTube() {
     }
   }
 
-  // 提取 YouTube 時間戳（秒）
+  // 提取 YouTube 时间戳（秒）
   const getYouTubeTimestamp = (url) => {
     if (!url) return 0
     try {
       const u = new URL(url.includes('://') ? url : 'https://' + url)
       const t = u.searchParams.get('t')
       if (t) {
-        // 處理 3750s 或 3750 格式
+        // 处理 3750s 或 3750 格式
         return parseInt(t.toString().replace('s', '')) || 0
       }
       return 0
@@ -41,19 +41,34 @@ export function useYouTube() {
     }
   }
 
-  // 新增：構建 YouTube embed URL（恢復第一版顯示邏輯）
-  const buildYouTubeEmbed = (url, startTime = 0) => {
+  /**
+   * 移除 URL 中的時間戳參數（t, start）
+   */
+  const stripYouTubeTimestamp = (url) => {
+    if (!url) return ''
+    try {
+      const u = new URL(url.includes('://') ? url : `https://${url}`)
+      u.searchParams.delete('t')
+      u.searchParams.delete('start')
+      // 如果是 youtu.be/xxx?t=123 這種格式，URL 對象會把 t 放在 searchParams
+      return u.toString()
+    } catch (e) {
+      return url
+    }
+  }
+
+  // 新增：构建 YouTube embed URL（恢复第一版显示逻辑）
+  /**
+   * 构建 YouTube 嵌入 URL
+   */
+  const buildYouTubeEmbed = (url, startTime = 0, autoplay = false) => {
     const id = getYouTubeId(url)
     if (!id) return ''
-    const params = new URLSearchParams({ 
-      controls: '1', 
-      modestbranding: '1', 
-      rel: '0', 
-      playsinline: '1' 
-    })
-    if (startTime > 0) {
-      params.append('start', startTime.toString())
-    }
+    
+    const params = new URLSearchParams()
+    if (startTime > 0) params.append('start', startTime)
+    if (autoplay) params.append('autoplay', '1')
+    
     return `https://www.youtube.com/embed/${id}?${params.toString()}`
   }
 
@@ -63,7 +78,9 @@ export function useYouTube() {
   return {
     getYouTubeId,
     getYouTubeTimestamp,
+    stripYouTubeTimestamp,
     buildYouTubeEmbed,
-    isYouTube,
+    isYouTube
   }
 }
+

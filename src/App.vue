@@ -32,8 +32,7 @@ const {
         :key="win.id"
         :win="win"
         :paneId="win.id"
-        :videoUrl="win.id === 'viewer' ? store.viewerUrl : store.animeUrl"
-        :startTime="win.id === 'viewer' ? store.viewerStartTime : store.animeStartTime"
+        :videoUrl="win.id === 'viewer' ? store.viewerEmbedUrl : store.animeEmbedUrl"
         :bgColor="win.id === 'viewer' ? store.viewerColor : store.animeColor"
         :onPaneMouseDown="onPaneMouseDown"
         :onResizeMouseDown="onResizeMouseDown"
@@ -57,6 +56,7 @@ const {
   transform: none !important;
 }
 </style>
+
 
 
 
