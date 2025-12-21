@@ -1,5 +1,33 @@
-# Vue 3 + Vite
+# VideoSynchronizer
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+这是一个让你可以在一个网页上同时观看两个视频（例如一边看动漫，一边看反应视频）的小工具。你可以自由移动视频的位置，或是调整它们的大小。支持移动端。
+（主要是我自己想用来看那些同步视听的视频，才开发的这个小工具）
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+访问 -> https://noodles-lover.github.io/VideoSynchronizer/
+
+## 🎮 操作
+
+- **移动视频**：按住视频**顶部边缘**，就可以像拖动窗口一样把它移到任何地方。
+- **调整大小**：点击並拖动视频**右下角**的位置，就可以放大或缩小视频。
+- **置顶**：点击任何一个视频，它就会自动跳到最前面，不会被另一个视频挡住。你也可以透过设置进行强制置顶
+
+## ⚙️ 设置说明
+
+点击画面上的**齿轮图标 (⚙️)** 即可打开菜单：
+
+1. **放上视频**：
+   - 在「视听方」或「动漫方」的输入栏裡贴上 YouTube 网址。
+   - **设置时间**：网址后面的输入栏可以填入数字（秒），让视频从指定的时间点开始播放。
+2. **同时播放**：
+   - 在对好两个视频的开始时间后，点击底部的「▶ 同时播放」按钮，两个视频会一起重新加载並开始（根据网络可能会有数秒内的延迟）。
+3. **画面调整**：
+   - **按钮位置**：可以把齿轮按钮移到左上角或右上角，避免挡到视频。
+   - **强制置顶**：如果你希望某个视频永远不被挡住，可以在这裡设置。
+   - **全屏显示**：想专心看其中一个视频时，可以把它切换到全屏。
+4. **菜单透明度**：
+   - 滑动下方的进度条，可以让设置菜单变透明，这样就不会完全遮住后面的画面。
+
+## 📝 备注
+
+- **支持**：目前仅支持 **YouTube** 视频。
+- **触屏友好**：在手机或平板上也可以直接用手指拖拽操作喔！
