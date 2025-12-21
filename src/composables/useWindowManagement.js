@@ -49,36 +49,60 @@ export function useWindowManagement() {
     resizeId: null,
     startW: 0,
     startH: 0,
+    currentX: 0,
+    currentY: 0,
   })
 
   const onPaneMouseDown = (win, e) => {
     // 整个窗格可拖动（恢复第一版易用拖动），无需按键/模式
-    if (e.button !== 0 || store.fullScreen === win.id) return
+    if (e.type === 'mousedown' && e.button !== 0) return
+    if (store.fullScreen === win.id) return
+    
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX
+    const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY
+    
     bringToFront(win.id)
     drag.isDragging = true
     drag.dragId = win.id
-    drag.startMouseX = e.clientX
-    drag.startMouseY = e.clientY
+    drag.startMouseX = clientX
+    drag.startMouseY = clientY
+    drag.currentX = clientX
+    drag.currentY = clientY
     drag.startX = win.x
     drag.startY = win.y
   }
 
   const onResizeMouseDown = (win, e) => {
-    if (e.button !== 0 || store.fullScreen === win.id) return
+    if (e.type === 'mousedown' && e.button !== 0) return
+    if (store.fullScreen === win.id) return
+    
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX
+    const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY
+    
     drag.isResizing = true
     drag.resizeId = win.id
-    drag.startMouseX = e.clientX
-    drag.startMouseY = e.clientY
+    drag.startMouseX = clientX
+    drag.startMouseY = clientY
+    drag.currentX = clientX
+    drag.currentY = clientY
     drag.startW = win.w
     drag.startH = win.h
   }
 
   const onWindowsMouseMove = (e) => {
+    if (!drag.isDragging && !drag.isResizing) return
+    
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX
+    const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY
+
+    drag.currentX = clientX
+    drag.currentY = clientY
+
     if (drag.isDragging && drag.dragId) {
       const win = windows.value.find(w => w.id === drag.dragId)
       if (!win) return
-      const nx = drag.startX + (e.clientX - drag.startMouseX)
-      const ny = drag.startY + (e.clientY - drag.startMouseY)
+      const nx = drag.startX + (clientX - drag.startMouseX)
+      const ny = drag.startY + (clientY - drag.startMouseY)
       const maxX = window.innerWidth - 50
       const maxY = window.innerHeight - 50
       win.x = Math.max(0, Math.min(nx, maxX))
@@ -86,8 +110,8 @@ export function useWindowManagement() {
     } else if (drag.isResizing && drag.resizeId) {
       const win = windows.value.find(w => w.id === drag.resizeId)
       if (!win) return
-      const nw = Math.max(180, drag.startW + (e.clientX - drag.startMouseX))
-      const nh = Math.max(120, drag.startH + (e.clientY - drag.startMouseY))
+      const nw = Math.max(180, drag.startW + (clientX - drag.startMouseX))
+      const nh = Math.max(120, drag.startH + (clientY - drag.startMouseY))
       const maxW = window.innerWidth - win.x
       const maxH = window.innerHeight - win.y
       win.w = Math.min(nw, maxW)
@@ -104,6 +128,7 @@ export function useWindowManagement() {
 
   return {
     windows,
+    drag,
     bringToFront,
     onPaneMouseDown,
     onResizeMouseDown,
