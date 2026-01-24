@@ -40,7 +40,7 @@ const {
         :key="win.id"
         :win="win"
         :paneId="win.id"
-        :videoUrl="win.id === 'viewer' ? store.viewerEmbedUrl : store.animeEmbedUrl"
+        :player="win.id === 'viewer' ? store.viewer : store.anime"
         :bgColor="win.id === 'viewer' ? store.viewerColor : store.animeColor"
         :onPaneMouseDown="onPaneMouseDown"
         :onResizeMouseDown="onResizeMouseDown"

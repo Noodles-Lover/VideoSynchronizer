@@ -13,16 +13,16 @@
     <div class="content">
       <!-- 视听方或動漫方内容：纯视频 -->
       <div class="video-container">
-        <template v-if="isYouTube(videoUrl)">
+        <template v-if="player.type === 'youtube'">
           <iframe
-            :key="videoUrl"
-            :src="videoUrl"
+            :key="player.embedUrl"
+            :src="player.embedUrl"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
           ></iframe>
         </template>
-        <video v-else-if="videoUrl" :src="videoUrl" controls></video>
+        <video v-else-if="player.embedUrl" :src="player.embedUrl" controls ref="videoRef"></video>
       </div>
     </div>
     
@@ -35,19 +35,32 @@
 </template>
 
 <script setup>
-import { useYouTube } from '../composables/useYouTube'
 import { store } from '../store'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { eventBus } from '../utils/eventBus'
 
 const props = defineProps({
   win: Object,
   paneId: String,
-  videoUrl: String,
+  player: Object,
   bgColor: String,
   onPaneMouseDown: Function,
   onResizeMouseDown: Function
 })
 
-const { isYouTube } = useYouTube()
+const videoRef = ref(null)
+
+const handleSyncPlay = () => {
+  props.player.play(videoRef.value)
+}
+
+onMounted(() => {
+  eventBus.on('sync-play', handleSyncPlay)
+})
+
+onUnmounted(() => {
+  eventBus.off('sync-play', handleSyncPlay)
+})
 </script>
 
 <style scoped>

@@ -13,15 +13,19 @@
       <div class="field">
         <label :style="{ color: store.viewerColor }">视听方 URL</label>
         <div class="input-with-time">
-          <input v-model="store.viewerRawUrl" placeholder="yt链接或直链" @input="handleUrlInput('viewer')" />
-          <input v-model.number="store.viewerStartTime" type="number" placeholder="秒" @input="handleUrlInput('viewer')" class="time-input" />
+          <input v-model="store.viewer.rawUrl" placeholder="yt链接或直链" @input="handleUrlInput('viewer')" />
+          <input v-model.number="store.viewer.startTime" type="number" placeholder="秒" @input="handleUrlInput('viewer')" class="time-input" />
         </div>
       </div>
       <div class="field">
         <label :style="{ color: store.animeColor }">動漫方 URL</label>
         <div class="input-with-time">
-          <input v-model="store.animeRawUrl" placeholder="yt链接或直链" @input="handleUrlInput('anime')" />
-          <input v-model.number="store.animeStartTime" type="number" placeholder="秒" @input="handleUrlInput('anime')" class="time-input" />
+          <input v-model="store.anime.rawUrl" placeholder="yt链接或直链" @input="handleUrlInput('anime')" />
+          <input v-model.number="store.anime.startTime" type="number" placeholder="秒" @input="handleUrlInput('anime')" class="time-input" />
+        </div>
+        <div class="file-upload">
+          <label class="file-label">或上传本地视频: </label>
+          <input type="file" accept="video/*" @change="handleFileUpload" />
         </div>
       </div>
       <div class="field">
@@ -73,52 +77,54 @@
 import { ref } from 'vue'
 import { store } from '../store'
 import { useYouTube } from '../composables/useYouTube'
+import { eventBus } from '../utils/eventBus'
+import { createPlayer, LocalVideo } from '../models/VideoPlayer'
 
 const showSettings = ref(true)
-const { getYouTubeTimestamp, stripYouTubeTimestamp, buildYouTubeEmbed, isYouTube } = useYouTube()
+const { isYouTube } = useYouTube()
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const player = new LocalVideo()
+  player.load(file)
+  store.anime = player
+}
 
 const handleUrlInput = (type) => {
   const isViewer = type === 'viewer'
-  let url = isViewer ? store.viewerRawUrl : store.animeRawUrl
+  const player = isViewer ? store.viewer : store.anime
+  const rawUrl = player.rawUrl
   
-  // 提取時間戳
-  const timestamp = getYouTubeTimestamp(url)
-  if (timestamp > 0) {
-    if (isViewer) store.viewerStartTime = timestamp
-    else store.animeStartTime = timestamp
-    
-    // 移除原始連結中的時間戳參數
-    url = stripYouTubeTimestamp(url)
-    if (isViewer) store.viewerRawUrl = url
-    else store.animeRawUrl = url
+  // 如果是本地文件標記，不執行重載邏輯，僅更新顯示
+  if (rawUrl && rawUrl.startsWith('本地文件: ')) {
+    return
   }
 
-  // 構造 Embed URL
-  const startTime = isViewer ? store.viewerStartTime : store.animeStartTime
-  if (isYouTube(url)) {
-    const embedUrl = buildYouTubeEmbed(url, startTime, false)
-    if (isViewer) store.viewerEmbedUrl = embedUrl
-    else store.animeEmbedUrl = embedUrl
+  // 根據輸入創建對應的播放器實例
+  if (isYouTube(rawUrl)) {
+    if (player.type !== 'youtube') {
+      const newPlayer = createPlayer(rawUrl)
+      if (isViewer) store.viewer = newPlayer
+      else store.anime = newPlayer
+    } else {
+      player.load(rawUrl)
+    }
   } else {
-    if (isViewer) store.viewerEmbedUrl = url
-    else store.animeEmbedUrl = url
+    if (player.type !== 'local' || (player.rawUrl !== rawUrl && !rawUrl.startsWith('本地文件: '))) {
+      const newPlayer = createPlayer(rawUrl)
+      if (isViewer) store.viewer = newPlayer
+      else store.anime = newPlayer
+    } else {
+      player.load(rawUrl)
+    }
   }
 }
 
 const handleSyncPlay = () => {
-  // 直接在已有的 embedUrl 後加上 autoplay 參數觸發重載
-  const appendAutoplay = (url) => {
-    if (!url) return ''
-    const separator = url.includes('?') ? '&' : '?'
-    return `${url}${separator}autoplay=1`
-  }
-
-  if (store.viewerEmbedUrl) {
-    store.viewerEmbedUrl = appendAutoplay(store.viewerEmbedUrl)
-  }
-  if (store.animeEmbedUrl) {
-    store.animeEmbedUrl = appendAutoplay(store.animeEmbedUrl)
-  }
+  // 僅透過 Event Bus 發送全局同步播放信號，具體播放邏輯交由播放器組件處理
+  eventBus.emit('sync-play')
 }
 </script>
 
@@ -142,7 +148,9 @@ const handleSyncPlay = () => {
   display: flex;
   flex-direction: column;
 }
-.field { display: flex; align-items: center; gap: 1vw; margin-bottom: 1.5vw; }
+.field { display: flex; flex-wrap: wrap; align-items: center; gap: 1vw; margin-bottom: 1.5vw; }
+.file-upload { width: 100%; display: flex; align-items: center; margin-top: 0.5vw; margin-left: 9vw; }
+.file-label { font-size: clamp(12px, 0.9vw, 14px); color: #666; margin-right: 0.5vw; width: auto !important; min-width: auto !important; }
 .field label { width: 8vw; min-width: 90px; font-size: clamp(13px, 1.2vw, 18px); color: #444; font-weight: 500; }
 .field input { flex: 1; padding: 0.6vw 0.8vw; border: 1px solid #d0d7de; border-radius: 6px; font-size: clamp(12px, 1vw, 16px); background: rgba(255, 255, 255, 0.8); }
 .input-with-time { flex: 1; display: flex; gap: 0.5vw; }

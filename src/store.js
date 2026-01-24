@@ -1,12 +1,9 @@
 import { reactive, watch } from 'vue'
+import { createPlayer } from './models/VideoPlayer'
 
 export const store = reactive({
-  viewerRawUrl: '',
-  viewerStartTime: 0,
-  viewerEmbedUrl: '',
-  animeRawUrl: '',
-  animeStartTime: 0,
-  animeEmbedUrl: '',
+  viewer: createPlayer(''),
+  anime: createPlayer(''),
   viewerColor: '#3498db', // 蓝色
   animeColor: '#e74c3c',  // 红色
   forcedTop: 'none',
