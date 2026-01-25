@@ -76,29 +76,80 @@ export class LocalVideo extends VideoPlayer {
       this.displayText = this.rawUrl;
       this.embedUrl = URL.createObjectURL(file);
       this.startTime = 0;
-    } else if (typeof file === 'string') {
-      // 处理直链
-      this.rawUrl = file;
-      this.displayText = file;
-      this.embedUrl = file;
     }
   }
 
   play(videoElement) {
     if (videoElement) {
-      if (this.startTime > 0) {
-        videoElement.currentTime = this.startTime;
+      const startPlaying = () => {
+        if (this.startTime > 0) {
+          videoElement.currentTime = this.startTime;
+        }
+        videoElement.play().catch(e => console.warn('Local play failed:', e));
+      };
+
+      if (videoElement.src !== this.embedUrl) {
+        videoElement.src = this.embedUrl;
+        videoElement.load();
+        videoElement.onloadedmetadata = () => {
+          startPlaying();
+          videoElement.onloadedmetadata = null;
+        };
+      } else {
+        startPlaying();
       }
-      videoElement.play().catch(e => console.warn('Local play failed:', e));
+    }
+  }
+}
+
+export class DirectLinkVideo extends VideoPlayer {
+  constructor() {
+    super();
+    this.type = 'direct';
+  }
+
+  load(url) {
+    this.rawUrl = url;
+    this.displayText = url;
+    this.embedUrl = url;
+  }
+
+  play(videoElement) {
+    if (videoElement) {
+      const startPlaying = () => {
+        if (this.startTime > 0) {
+          videoElement.currentTime = this.startTime;
+        }
+        videoElement.play().catch(e => console.warn('Direct link play failed:', e));
+      };
+
+      if (videoElement.src !== this.embedUrl) {
+        videoElement.src = this.embedUrl;
+        videoElement.load();
+        // 如果切換了源，等待元數據加載後再跳轉時間並播放
+        videoElement.onloadedmetadata = () => {
+          startPlaying();
+          videoElement.onloadedmetadata = null;
+        };
+      } else {
+        startPlaying();
+      }
     }
   }
 }
 
 export function createPlayer(source) {
   if (!source) return new VideoPlayer();
-  if (isYouTube(source)) {
+  
+  const sourceStr = String(source).trim();
+  
+  if (isYouTube(sourceStr)) {
     const p = new YouTubeVideo();
-    p.load(source);
+    p.load(sourceStr);
+    return p;
+  } else if (sourceStr.startsWith('http') || sourceStr.startsWith('/') || sourceStr.startsWith('./')) {
+    const p = new DirectLinkVideo();
+    p.load(sourceStr);
     return p;
   } else {
     const p = new LocalVideo();

@@ -107,24 +107,18 @@ const handleUrlInput = (type) => {
     return
   }
 
-  // 根據輸入創建對應的播放器實例
-  if (isYouTube(rawUrl)) {
-    if (player.type !== 'youtube') {
-      const newPlayer = createPlayer(rawUrl)
-      if (isViewer) store.viewer = newPlayer
-      else store.anime = newPlayer
-    } else {
-      player.load(rawUrl)
-    }
+  // 使用工廠函數創建或更新播放器
+  const newPlayer = createPlayer(rawUrl)
+  
+  // 保留現有的 startTime，除非 URL 中自帶了時間戳（針對 YouTube）
+  if (newPlayer.type === 'youtube' && newPlayer.startTime > 0) {
+    // YouTube 類會自動從 URL 解析 startTime
   } else {
-    if (player.type !== 'local' || (player.rawUrl !== rawUrl && !rawUrl.startsWith('本地文件: '))) {
-      const newPlayer = createPlayer(rawUrl)
-      if (isViewer) store.viewer = newPlayer
-      else store.anime = newPlayer
-    } else {
-      player.load(rawUrl)
-    }
+    newPlayer.startTime = player.startTime
   }
+
+  if (isViewer) store.viewer = newPlayer
+  else store.anime = newPlayer
 }
 
 const handleSyncPlay = () => {

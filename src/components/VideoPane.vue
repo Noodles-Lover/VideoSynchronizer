@@ -20,9 +20,10 @@
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
+            referrerpolicy="no-referrer"
           ></iframe>
         </template>
-        <video v-else-if="player.embedUrl" :src="player.embedUrl" controls ref="videoRef"></video>
+        <video v-else-if="player.embedUrl" :src="player.embedUrl" controls ref="videoRef" referrerpolicy="no-referrer"></video>
       </div>
     </div>
     
