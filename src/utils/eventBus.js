@@ -4,7 +4,14 @@ const bus = reactive(new Map());
 export const eventBus = {
   emit(event, ...args) {
     if (bus.has(event)) {
-      bus.get(event).forEach(callback => callback(...args));
+      // 修改：使用 try-catch 包裹回調，防止單個回調報錯導致後續回調不執行
+      bus.get(event).forEach(callback => {
+        try {
+          callback(...args);
+        } catch (e) {
+          console.error(`Error in eventBus handler for "${event}":`, e);
+        }
+      });
     }
   },
   on(event, callback) {

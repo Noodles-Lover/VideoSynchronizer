@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue'
-import { createPlayer } from './models/VideoPlayer'
+import { createPlayer } from '@/utils/VideoPlayer'
 
 export const store = reactive({
   viewer: createPlayer(''),
@@ -21,7 +21,3 @@ watch(() => store.fullScreen, (newVal) => {
     store.forcedTop = 'viewer'
   }
 })
-
-
-
-

@@ -1,4 +1,4 @@
-import { useYouTube } from '../composables/useYouTube';
+import { useYouTube } from '@/utils/useYouTube';
 
 const { buildYouTubeEmbed, isYouTube, getYouTubeTimestamp, stripYouTubeTimestamp } = useYouTube();
 
@@ -11,12 +11,14 @@ export class VideoPlayer {
     this.type = 'none'; // 'youtube', 'local', 'none'
   }
 
+  // 修改：提供默認實現，避免拋出錯誤導致 eventBus 中斷
   load(source) {
-    throw new Error('Method "load()" must be implemented.');
+    console.log('Base player load called with:', source);
   }
 
+  // 修改：提供默認實現
   play(videoElement) {
-    throw new Error('Method "play()" must be implemented.');
+    console.log('Base player play called');
   }
 }
 

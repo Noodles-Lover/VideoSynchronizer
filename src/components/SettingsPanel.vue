@@ -14,18 +14,18 @@
         <label :style="{ color: store.viewerColor }">视听方 URL</label>
         <div class="input-with-time">
           <input v-model="store.viewer.rawUrl" placeholder="yt链接或直链" @input="handleUrlInput('viewer')" />
+          <button class="upload-btn" @click="$refs.viewerFileInput.click()">上传</button>
+          <input type="file" ref="viewerFileInput" accept="video/*" @change="handleFileUpload($event, 'viewer')" style="display: none" />
           <input v-model.number="store.viewer.startTime" type="number" placeholder="秒" @input="handleUrlInput('viewer')" class="time-input" />
         </div>
       </div>
       <div class="field">
-        <label :style="{ color: store.animeColor }">動漫方 URL</label>
+        <label :style="{ color: store.animeColor }">动漫方 URL</label>
         <div class="input-with-time">
           <input v-model="store.anime.rawUrl" placeholder="yt链接或直链" @input="handleUrlInput('anime')" />
+          <button class="upload-btn" @click="$refs.animeFileInput.click()">上传</button>
+          <input type="file" ref="animeFileInput" accept="video/*" @change="handleFileUpload($event, 'anime')" style="display: none" />
           <input v-model.number="store.anime.startTime" type="number" placeholder="秒" @input="handleUrlInput('anime')" class="time-input" />
-        </div>
-        <div class="file-upload">
-          <label class="file-label">或上传本地视频: </label>
-          <input type="file" accept="video/*" @change="handleFileUpload" />
         </div>
       </div>
       <div class="field">
@@ -75,21 +75,26 @@
 
 <script setup>
 import { ref } from 'vue'
-import { store } from '../store'
-import { useYouTube } from '../composables/useYouTube'
-import { eventBus } from '../utils/eventBus'
-import { createPlayer, LocalVideo } from '../models/VideoPlayer'
+import { store } from '@/utils/store'
+import { useYouTube } from '@/utils/useYouTube'
+import { eventBus } from '@/utils/eventBus'
+import { createPlayer, LocalVideo } from '@/utils/VideoPlayer'
 
 const showSettings = ref(true)
 const { isYouTube } = useYouTube()
 
-const handleFileUpload = (event) => {
+const handleFileUpload = (event, type) => {
   const file = event.target.files[0]
   if (!file) return
 
   const player = new LocalVideo()
   player.load(file)
-  store.anime = player
+  
+  if (type === 'viewer') {
+    store.viewer = player
+  } else {
+    store.anime = player
+  }
 }
 
 const handleUrlInput = (type) => {
@@ -152,9 +157,22 @@ const handleSyncPlay = () => {
 .file-upload { width: 100%; display: flex; align-items: center; margin-top: 0.5vw; margin-left: 9vw; }
 .file-label { font-size: clamp(12px, 0.9vw, 14px); color: #666; margin-right: 0.5vw; width: auto !important; min-width: auto !important; }
 .field label { width: 8vw; min-width: 90px; font-size: clamp(13px, 1.2vw, 18px); color: #444; font-weight: 500; }
-.field input { flex: 1; padding: 0.6vw 0.8vw; border: 1px solid #d0d7de; border-radius: 6px; font-size: clamp(12px, 1vw, 16px); background: rgba(255, 255, 255, 0.8); }
-.input-with-time { flex: 1; display: flex; gap: 0.5vw; }
-.time-input { width: 4vw !important; min-width: 50px !important; flex: none !important; text-align: center; }
+.field input { flex: 1; padding: 0.6vw 0.8vw; border: 1px solid #d0d7de; border-radius: 6px; font-size: clamp(12px, 1vw, 16px); background: rgba(255, 255, 255, 0.8); min-width: 0; }
+.upload-btn {
+  padding: 0.6vw 1vw;
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: clamp(11px, 0.9vw, 14px);
+  color: #24292f;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.upload-btn:hover { background: #f3f4f6; border-color: #1b1f2426; }
+.upload-btn:active { background: #ebecf0; }
+.input-with-time { flex: 1; display: flex; gap: 0.5vw; align-items: center; }
+.time-input { width: 3.5vw !important; min-width: 45px !important; flex: none !important; text-align: center; }
 .radio-group { display: flex; gap: 1vw; font-size: clamp(12px, 0.9vw, 15px); color: #444; }
 .radio-group label { display: flex; align-items: center; gap: 0.3vw; cursor: pointer; width: auto; }
 .slider-group { flex: 1; display: flex; align-items: center; gap: 1vw; }

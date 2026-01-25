@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import { store } from './store'
-import { useWindowManagement } from './composables/useWindowManagement'
-import { useYouTube } from './composables/useYouTube'
-import SettingsPanel from './components/SettingsPanel.vue'
-import VideoPane from './components/VideoPane.vue'
-import moveIcon from './assets/move.svg'
-import zoomIcon from './assets/zoom.svg'
+import { store } from '@/utils/store'
+import { useWindowManagement } from '@/utils/useWindowManagement'
+import { useYouTube } from '@/utils/useYouTube'
+import SettingsPanel from '@/components/SettingsPanel.vue'
+import VideoPane from '@/components/VideoPane.vue'
+import moveIcon from '@/assets/move.svg'
+import zoomIcon from '@/assets/zoom.svg'
 
 // 解析 YouTube 视频 ID（支持 watch?v=、youtu.be、/shorts/、/embed/）
 const { getYouTubeId, buildYouTubeEmbed, isYouTube } = useYouTube()
@@ -25,6 +25,7 @@ const {
 
 <template>
   <div class="app-root">
+    <p>beta 1.1</p>
     <!-- 设置按钮与面板 -->
     <SettingsPanel />
 

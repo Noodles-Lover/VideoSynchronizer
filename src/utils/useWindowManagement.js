@@ -1,5 +1,5 @@
 import { ref, reactive, watch } from 'vue'
-import { store } from '../store'
+import { store } from '@/utils/store'
 
 export function useWindowManagement() {
   // 窗口系统：自由拖动/缩放/重叠（无可见外框）

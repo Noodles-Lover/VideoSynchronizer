@@ -11,34 +11,31 @@ VideoSynchronizer/
 ├── src/
 │   ├── assets/             # SVG 圖標資源
 │   ├── components/         # Vue 組件
-│   │   ├── SettingsPanel.vue # 設置面板組件
-│   │   └── VideoPane.vue     # 視頻窗格組件
-│   ├── composables/        # 邏輯封裝 (Hooks)
-│   │   ├── useWindowManagement.js # 窗口管理邏輯 (拖拽、縮放、層級)
-│   │   └── useYouTube.js         # YouTube URL 解析與處理邏輯
-│   ├── models/             # 數據模型 (新增)
-│   │   └── VideoPlayer.js        # 視頻播放器抽象類與實現
-│   ├── utils/              # 通用工具函數
-│   │   └── eventBus.js           # 全局事件總線 (Event Bus)
+│   │   ├── SettingsPanel.vue
+│   │   └── VideoPane.vue
+│   ├── utils/              # 邏輯與工具函數
+│   │   ├── store.js            # 全局狀態管理
+│   │   ├── VideoPlayer.js      # 視頻播放器邏輯
+│   │   ├── eventBus.js         # 全局事件總線
+│   │   ├── useYouTube.js       # YouTube 解析工具
+│   │   └── useWindowManagement.js # 窗口管理邏輯
 │   ├── App.vue             # 根組件
-│   ├── main.js             # 項目入口文件
-│   ├── store.js            # 全局狀態管理
-│   └── style.css           # 全局樣式
-├── index.html              # HTML 模板
-├── package.json            # 依賴配置
-└── vite.config.js          # Vite 配置文件
+│   └── main.js             # 入口文件
+├── index.html
+├── package.json
+└── vite.config.js
 ```
 
 ### 核心文件說明
 
-- **src/models/VideoPlayer.js** (新增)
+- **src/utils/VideoPlayer.js**
   - 視頻播放器的抽象體系。
   - `VideoPlayer`: 抽象基類，定義了 `displayText`, `rawUrl`, `embedUrl`, `startTime` 等屬性。
   - `YouTubeVideo`: 繼承自 `VideoPlayer`，實現 YouTube 特有的加載（ID 提取、時間戳處理）和播放（URL 參數觸發）邏輯。
   - `LocalVideo`: 繼承自 `VideoPlayer`，實現本地文件 Blob URL 和直鏈視頻的加載與原生播放。
   - `createPlayer`: 工廠函數，根據輸入自動創建對應的播放器實例。
 
-- **src/store.js**
+- **src/utils/store.js**
   - 使用 Vue 3 `reactive` 管理全局狀態。
   - 存儲 `viewer` (視聽方) 和 `anime` (動漫方) 的 `VideoPlayer` 實例。
   - 存儲 UI 配置（顏色、全屏狀態、設置面板位置等）。
@@ -56,10 +53,10 @@ VideoSynchronizer/
 - **src/utils/eventBus.js**
   - 基於 Vue `reactive` 的簡易事件總線。
   - 用於跨組件通信，主要是觸發「同時播放」的操作。
+  - 具備健壯的 `emit` 機制，確保單個訂閱者錯誤不影響其他訂閱者。
 
-- **src/composables/**
-  - `useYouTube.js`: 封裝 YouTube URL 解析、ID 提取、Embed URL 構建等工具函數。
-  - `useWindowManagement.js`: 封裝多窗口的拖拽、縮放、置頂等佈局邏輯。
+- **src/utils/useYouTube.js**: 封裝 YouTube URL 解析、ID 提取、Embed URL 構建等工具函數。
+- **src/utils/useWindowManagement.js**: 封裝多窗口的拖拽、縮放、置頂等佈局邏輯。
 
 ### 數據流向
 
@@ -67,15 +64,23 @@ VideoSynchronizer/
 2. **同步播放**: `SettingsPanel` (點擊按鈕) -> `eventBus.emit('sync-play')` -> `VideoPane` (接收事件) -> `player.play(videoElement)`。
 3. **窗口交互**: `App.vue` (全局鼠標監聽) -> `useWindowManagement` -> 更新 `windows` 坐標/大小 -> `VideoPane` 響應式渲染。
 
+### 路徑別名
+
+項目已配置 `@/` 作為 `src/` 目錄的別名。在導入文件時，推薦使用基於根路徑的導入方式，例如：
+```javascript
+import { store } from '@/utils/store'
+```
+
 ### 技術棧
 
 - **Vue 3 (Composition API)**: 組件化與響應式邏輯。
-- **Vite**: 構建與開發服務。
+- **Vite**: 構建與開發服務，配置了路徑別名。
 - **HTML5 Video & Iframe API**: 視頻播放核心。
 - **CSS Grid/Flexbox**: 佈局。
 - **Object Oriented Programming**: 使用類繼承封裝不同類型的視頻處理邏輯。
 
 ## 開發建議
-1. **添加新功能**: 優先考慮將邏輯封裝在 `composables` 中，保持組件代碼簡潔。
-2. **樣式管理**: 大部分組件樣式都寫在 `scoped` 中，全局基礎樣式定義在 `style.css`。
-3. **狀態同步**: 盡量使用 `store.js` 進行組件間通信，避免過深的 Props 傳遞。
+1. **邏輯封裝**: 相關邏輯應優先封裝在 `src/utils/` 下的 JS 文件中，保持組件代碼簡潔。
+2. **導入規範**: 優先使用 `@/` 別名路徑進行模塊導入。
+3. **樣式管理**: 大部分組件樣式都寫在 `scoped` 中，全局基礎樣式定義在 `style.css`。
+4. **狀態同步**: 盡量使用 `store.js` 進行組件間通信，避免過深的 Props 傳遞。

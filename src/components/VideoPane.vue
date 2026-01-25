@@ -35,9 +35,9 @@
 </template>
 
 <script setup>
-import { store } from '../store'
+import { store } from '@/utils/store'
 import { ref, onMounted, onUnmounted } from 'vue'
-import { eventBus } from '../utils/eventBus'
+import { eventBus } from '@/utils/eventBus'
 
 const props = defineProps({
   win: Object,
