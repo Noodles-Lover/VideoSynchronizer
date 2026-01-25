@@ -32,8 +32,9 @@ VideoSynchronizer/
   - 視頻播放器的抽象體系。
   - `VideoPlayer`: 抽象基類，定義了 `displayText`, `rawUrl`, `embedUrl`, `startTime` 等屬性。
   - `YouTubeVideo`: 繼承自 `VideoPlayer`，實現 YouTube 特有的加載（ID 提取、時間戳處理）和播放（URL 參數觸發）邏輯。
-  - `LocalVideo`: 繼承自 `VideoPlayer`，實現本地文件 Blob URL 和直鏈視頻的加載與原生播放。
-  - `createPlayer`: 工廠函數，根據輸入自動創建對應的播放器實例。
+  - `LocalVideo`: 繼承自 `VideoPlayer`，專門處理本地文件（Blob URL）的加載與播放。
+  - `DirectLinkVideo`: 繼承自 `VideoPlayer`，處理網絡視頻直鏈（如 .mp4）的加載與播放。
+  - `createPlayer`: 工廠函數，根據輸入自動識別類型（YouTube、直鏈、本地文件）並創建實例。
 
 - **src/utils/store.js**
   - 使用 Vue 3 `reactive` 管理全局狀態。
