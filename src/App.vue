@@ -25,7 +25,7 @@ const {
 
 <template>
   <div class="app-root">
-    <!-- <p>beta 1.2</p> -->
+    <!-- <p>beta 1.3</p> -->
     
     <!-- 设置按钮与面板 -->
     <SettingsPanel />

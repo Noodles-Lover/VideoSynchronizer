@@ -1,87 +1,85 @@
-# VideoSynchronizer 開發文檔
+# VideoSynchronizer 开发文档
 
-這是一個基於 Vue 3 和 Vite 開發的網頁工具，旨在讓使用者能夠同步觀看兩個視頻（如動漫與反應視頻）。本文件旨在介紹項目的結構、各文件的職責以及核心邏輯。
+这是一个基于 Vue 3 和 Vite 开发的网页工具，旨在让使用者能够同步观看两个视频（如动漫与反应视频）。本文件旨在介绍项目的结构、各文件的职责以及核心逻辑。
 
-## 目錄結構
+## 目录结构
 
 ```text
 VideoSynchronizer/
-├── .github/workflows/      # GitHub Actions 自動部署配置
-├── public/                 # 靜態資源
+├── .github/workflows/      # GitHub Actions 自动部署配置
+├── public/                 # 静态资源
 ├── src/
-│   ├── assets/             # SVG 圖標資源
-│   ├── components/         # Vue 組件
-│   │   ├── SettingsPanel.vue
-│   │   └── VideoPane.vue
-│   ├── utils/              # 邏輯與工具函數
-│   │   ├── store.js            # 全局狀態管理
-│   │   ├── VideoPlayer.js      # 視頻播放器邏輯
-│   │   ├── eventBus.js         # 全局事件總線
-│   │   ├── useYouTube.js       # YouTube 解析工具
-│   │   └── useWindowManagement.js # 窗口管理邏輯
-│   ├── App.vue             # 根組件
+│   ├── assets/             # SVG 图标资源
+│   ├── components/         # Vue 组件
+│   │   ├── SettingsPanel.vue # 全局设置面板
+│   │   ├── VideoPane.vue     # 视频窗口容器
+│   │   └── SideToolbar.vue   # 视频窗侧边快捷工具栏
+│   ├── utils/              # 逻辑与工具函数
+│   │   ├── store.js            # 全局状态管理 (Reactive Store)
+│   │   ├── VideoPlayer.js      # 视频播放器 OOP 逻辑
+│   │   ├── eventBus.js         # 全局事件总线
+│   │   ├── useYouTube.js       # YouTube 解析与 Embed 构建工具
+│   │   └── useWindowManagement.js # 窗口拖拽、缩放管理逻辑
+│   ├── App.vue             # 根组件
 │   └── main.js             # 入口文件
 ├── index.html
 ├── package.json
 └── vite.config.js
 ```
 
-### 核心文件說明
+### 核心文件说明
 
 - **src/utils/VideoPlayer.js**
-  - 視頻播放器的抽象體系。
-  - `VideoPlayer`: 抽象基類，定義了 `displayText`, `rawUrl`, `embedUrl`, `startTime` 等屬性。
-  - `YouTubeVideo`: 繼承自 `VideoPlayer`，實現 YouTube 特有的加載（ID 提取、時間戳處理）和播放（URL 參數觸發）邏輯。
-  - `LocalVideo`: 繼承自 `VideoPlayer`，專門處理本地文件（Blob URL）的加載與播放。
-  - `DirectLinkVideo`: 繼承自 `VideoPlayer`，處理網絡視頻直鏈（如 .mp4）的加載與播放。
-  - `createPlayer`: 工廠函數，根據輸入自動識別類型（YouTube、直鏈、本地文件）並創建實例。
+  - 视频播放器的抽象体系。
+  - `VideoPlayer`: 抽象基类，定义了 `displayText`, `rawUrl`, `embedUrl`, `startTime` 等属性。
+  - `YouTubeVideo`: 继承自 `VideoPlayer`，实现 YouTube 特有的加载（ID 提取、时间戳处理）和播放逻辑。
+  - `LocalVideo`: 继承自 `VideoPlayer`，专门处理本地文件（Blob URL）的加载与播放。
+  - `DirectLinkVideo`: 继承自 `VideoPlayer`，处理网络视频直链（如 .mp4）的加载与播放。
+  - `createPlayer`: 工厂函数，根据输入自动识别类型并创建实例。
 
 - **src/utils/store.js**
-  - 使用 Vue 3 `reactive` 管理全局狀態。
-  - 存儲 `viewer` (視聽方) 和 `anime` (動漫方) 的 `VideoPlayer` 實例。
-  - 存儲 UI 配置（顏色、全屏狀態、設置面板位置等）。
+  - 使用 Vue 3 `reactive` 管理全局状态。
+  - 存储 `viewer` (视听方) 和 `anime` (动漫方) 的 `VideoPlayer` 实例。
+  - 存储 UI 配置：`forcedTop` (强制置顶), `fullScreen` (全屏状态), `settingsPosition` (面板位置), `settingsOpacity` (面板透明度), `viewerOpacity/animeOpacity` (视频窗独立透明度)。
 
 - **src/components/SettingsPanel.vue**
-  - 設置面板，負責視頻 URL 輸入、本地文件上傳、顏色選擇等。
-  - 調用 `VideoPlayer` 實例的 `load` 方法更新視頻狀態。
-  - 通過 `eventBus` 發送同步播放信號。
+  - 全局设置面板，负责视频 URL 输入、本地文件上传、同步播放控制等。
+  - 通过 `eventBus` 发送 `sync-play` 信号。
 
 - **src/components/VideoPane.vue**
-  - 視頻展示窗口，負責渲染 `iframe` (YouTube) 或 `video` (本地/直鏈) 標籤。
-  - 監聽 `eventBus` 的 `sync-play` 事件，並調用 `player.play()` 執行播放邏輯。
-  - 處理窗口的拖拽和縮放顯示。
+  - 视频展示窗口，负责渲染 `iframe` (YouTube) 或 `video` (本地/直链) 标签。
+  - 监听 `eventBus` 的 `sync-play` 事件执行播放。
+  - **交互限制**：仅限顶部 `drag-handle` 区域触发窗口拖拽。
+  - 集成了 `SideToolbar` 快捷工具。
+
+- **src/components/SideToolbar.vue**
+  - 视频窗右侧的快捷工具栏，具备 4 秒自动隐藏逻辑。
+  - **功能**：独立置顶、全屏切换、不透明度滑块、快速设置弹窗（齿轮按钮）。
+  - **视觉**：固定 0.85 不透明度，毛玻璃效果。
 
 - **src/utils/eventBus.js**
-  - 基於 Vue `reactive` 的簡易事件總線。
-  - 用於跨組件通信，主要是觸發「同時播放」的操作。
-  - 具備健壯的 `emit` 機制，確保單個訂閱者錯誤不影響其他訂閱者。
+  - 基于 Vue `reactive` 的简易事件总线，用于跨组件触发「同时播放」。
 
-- **src/utils/useYouTube.js**: 封裝 YouTube URL 解析、ID 提取、Embed URL 構建等工具函數。
-- **src/utils/useWindowManagement.js**: 封裝多窗口的拖拽、縮放、置頂等佈局邏輯。
+- **src/utils/useWindowManagement.js**: 封装多窗口的拖拽、缩放、置顶等布局逻辑。
 
-### 數據流向
+### 数据流向
 
-1. **視頻加載**: `SettingsPanel` -> `player.load(url/file)` -> 更新 `store.player` 屬性。
-2. **同步播放**: `SettingsPanel` (點擊按鈕) -> `eventBus.emit('sync-play')` -> `VideoPane` (接收事件) -> `player.play(videoElement)`。
-3. **窗口交互**: `App.vue` (全局鼠標監聽) -> `useWindowManagement` -> 更新 `windows` 坐標/大小 -> `VideoPane` 響應式渲染。
+1. **视频加载**: `SettingsPanel` 或 `SideToolbar` -> `player.load()` -> 更新 `store` 实例。
+2. **同步播放**: `SettingsPanel` -> `eventBus.emit('sync-play')` -> `VideoPane` 接收并调用 `player.play()`。
+3. **窗口交互**: `App.vue` 全局监听鼠标 -> `useWindowManagement` 更新 `windows` 坐标 -> `VideoPane` 响应渲染。
 
-### 路徑別名
+### 路径别名
 
-項目已配置 `@/` 作為 `src/` 目錄的別名。在導入文件時，推薦使用基於根路徑的導入方式，例如：
-```javascript
-import { store } from '@/utils/store'
-```
+项目已配置 `@/` 作为 `src/` 目录的别名。
 
-### 技術棧
+### 技术栈
 
-- **Vue 3 (Composition API)**: 組件化與響應式邏輯。
-- **Vite**: 構建與開發服務，配置了路徑別名。
-- **HTML5 Video & Iframe API**: 視頻播放核心。
-- **CSS Grid/Flexbox**: 佈局。
-- **Object Oriented Programming**: 使用類繼承封裝不同類型的視頻處理邏輯。
+- **Vue 3 (Composition API)**: 响应式核心。
+- **Vite**: 构建工具，配置了路径别名。
+- **HTML5 Video & Iframe API**: 视频播放核心。
+- **OOP (面向对象编程)**: 封装视频处理逻辑。
 
-## 開發建議
-1. **邏輯封裝**: 相關邏輯應優先封裝在 `src/utils/` 下的 JS 文件中，保持組件代碼簡潔。
-2. **導入規範**: 優先使用 `@/` 別名路徑進行模塊導入。
-3. **樣式管理**: 大部分組件樣式都寫在 `scoped` 中，全局基礎樣式定義在 `style.css`。
-4. **狀態同步**: 盡量使用 `store.js` 進行組件間通信，避免過深的 Props 傳遞。
+## 开发建议
+1. **逻辑分离**: 业务逻辑留在 `utils/`，组件仅负责 UI 与交互。
+2. **状态共享**: 跨组件状态（如透明度、全屏）统一放入 `store.js`。
+3. **多端适配**: 窗口拖拽与缩放已兼容触屏事件（`touchstart`, `touchmove`）。

@@ -1,17 +1,24 @@
 <template>
   <div class="pane"
-    :style="{ left: win.x + 'px', top: win.y + 'px', width: win.w + 'px', height: win.h + 'px', zIndex: win.z, backgroundColor: bgColor }"
-    @mousedown="onPaneMouseDown(win, $event)"
-    @touchstart.passive="onPaneMouseDown(win, $event)"
+    :style="{ 
+      left: win.x + 'px', 
+      top: win.y + 'px', 
+      width: win.w + 'px', 
+      height: win.h + 'px', 
+      zIndex: win.z, 
+      backgroundColor: bgColor,
+      opacity: paneId === 'viewer' ? store.viewerOpacity : store.animeOpacity
+    }"
+    @click="triggerToolbar"
   >
-    <!-- 頂部不可見拖拽區，避免 iframe 阻斷拖拽事件 -->
+    <!-- 顶部不可见拖拽区 -->
     <div class="drag-handle" 
       @mousedown="onPaneMouseDown(win, $event)"
       @touchstart.passive="onPaneMouseDown(win, $event)"
     ></div>
 
     <div class="content">
-      <!-- 视听方或動漫方内容：纯视频 -->
+      <!-- 视听方或动漫方内容：纯视频 -->
       <div class="video-container">
         <template v-if="player.type === 'youtube'">
           <iframe
@@ -20,11 +27,13 @@
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
-            referrerpolicy="no-referrer"
           ></iframe>
         </template>
         <video v-else-if="player.embedUrl" :src="player.embedUrl" controls ref="videoRef" referrerpolicy="no-referrer"></video>
       </div>
+
+      <!-- 侧边工具栏 -->
+      <SideToolbar :trigger="toolbarTrigger" :pane-id="paneId" />
     </div>
     
     <!-- 右下角隐形缩放区域 -->
@@ -37,8 +46,9 @@
 
 <script setup>
 import { store } from '@/utils/store'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { eventBus } from '@/utils/eventBus'
+import SideToolbar from './SideToolbar.vue'
 
 const props = defineProps({
   win: Object,
@@ -50,6 +60,16 @@ const props = defineProps({
 })
 
 const videoRef = ref(null)
+const toolbarTrigger = ref(0)
+
+const triggerToolbar = () => {
+  toolbarTrigger.value++
+}
+
+// 监听窗口位置变化（移动时触发）
+watch([() => props.win.x, () => props.win.y], () => {
+  triggerToolbar()
+})
 
 const handleSyncPlay = () => {
   props.player.play(videoRef.value)

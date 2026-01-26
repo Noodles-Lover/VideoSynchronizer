@@ -9,7 +9,9 @@ export const store = reactive({
   forcedTop: 'none',
   fullScreen: 'none',
   settingsPosition: 'right', // 'left' or 'right'
-  settingsOpacity: 0.85
+  settingsOpacity: 0.85,
+  viewerOpacity: 1,
+  animeOpacity: 1
 })
 
 watch(() => store.fullScreen, (newVal) => {
