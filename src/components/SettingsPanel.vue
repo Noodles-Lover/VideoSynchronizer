@@ -52,7 +52,7 @@
         </div>
       </div>
       <div class="field">
-        <label>不透明度</label>
+        <label>面板透明度</label>
         <div class="slider-group">
           <input 
             type="range" 
@@ -65,9 +65,21 @@
         </div>
       </div>
       <div class="actions">
-        <button class="sync-play-btn" @click="handleSyncPlay">
-          <span>▶</span> 同时播放
-        </button>
+        <div class="sync-play-group">
+          <button class="sync-play-btn" @click="handleSyncPlay">
+            <span>▶</span> 同时播放
+          </button>
+          <div class="forward-controls">
+            <span class="forward-label">前进</span>
+            <div class="time-inputs">
+              <input v-model.number="store.forwardMinutes" type="number" placeholder="0" class="forward-input" />
+              <span>分</span>
+              <input v-model.number="store.forwardSeconds" type="number" placeholder="0" class="forward-input" />
+              <span>秒</span>
+            </div>
+            <button class="reset-btn" @click="resetForwardTime" title="重置时间">↺</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -102,17 +114,17 @@ const handleUrlInput = (type) => {
   const player = isViewer ? store.viewer : store.anime
   const rawUrl = player.rawUrl
   
-  // 如果是本地文件標記，不執行重載邏輯，僅更新顯示
+  // 如果是本地文件标记，不执行重载逻辑，仅更新显示
   if (rawUrl && rawUrl.startsWith('本地文件: ')) {
     return
   }
 
-  // 使用工廠函數創建或更新播放器
+  // 使用工厂函数创建或更新播放器
   const newPlayer = createPlayer(rawUrl)
   
-  // 保留現有的 startTime，除非 URL 中自帶了時間戳（針對 YouTube）
+  // 保留现有的 startTime，除非 URL 中自带了时间戳（针对 YouTube）
   if (newPlayer.type === 'youtube' && newPlayer.startTime > 0) {
-    // YouTube 類會自動從 URL 解析 startTime
+    // YouTube 类会自动从 URL 解析 startTime
   } else {
     newPlayer.startTime = player.startTime
   }
@@ -122,8 +134,14 @@ const handleUrlInput = (type) => {
 }
 
 const handleSyncPlay = () => {
-  // 僅透過 Event Bus 發送全局同步播放信號，具體播放邏輯交由播放器組件處理
-  eventBus.emit('sync-play')
+  const totalOffset = (store.forwardMinutes || 0) * 60 + (store.forwardSeconds || 0)
+  // 发送带有偏移量的同步信号
+  eventBus.emit('sync-forward', totalOffset)
+}
+
+const resetForwardTime = () => {
+  store.forwardMinutes = 0
+  store.forwardSeconds = 0
 }
 </script>
 
@@ -172,9 +190,27 @@ const handleSyncPlay = () => {
 .slider-group { flex: 1; display: flex; align-items: center; gap: 1vw; }
 .slider-group input[type="range"] { flex: 1; cursor: pointer; }
 .opacity-value { font-size: clamp(11px, 0.9vw, 14px); color: #666; min-width: 35px; }
-.actions { margin-top: 1vw; display: flex; justify-content: center; }
-.sync-play-btn {
+
+.forward-input { 
+  width: 2.5vw !important; 
+  min-width: 35px !important; 
+  flex: none !important; 
+  text-align: center; 
+  padding: 0.3vw !important; 
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  background: white;
+}
+
+.actions { margin-top: 1vw; }
+.sync-play-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0.8vw;
   width: 100%;
+}
+.sync-play-btn {
+  flex: 1;
   padding: 0.8vw;
   background: #2ea44f;
   color: white;
@@ -188,6 +224,45 @@ const handleSyncPlay = () => {
   justify-content: center;
   gap: 0.5vw;
   transition: all 0.2s;
+}
+.forward-controls {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4vw;
+  font-size: clamp(12px, 0.9vw, 15px);
+  color: #666;
+  background: #f6f8fa;
+  padding: 0.4vw 0.8vw;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+}
+.forward-label {
+  font-weight: 500;
+  color: #444;
+  white-space: nowrap;
+}
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.3vw;
+}
+.reset-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 1.2vw;
+  padding: 0 0.2vw;
+  transition: color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reset-btn:hover {
+  color: #666;
+  transform: rotate(-90deg);
 }
 .sync-play-btn:hover { background: #2c974b; transform: translateY(-1px); }
 .sync-play-btn:active { background: #298e46; transform: translateY(0); box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); }

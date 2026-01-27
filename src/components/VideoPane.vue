@@ -75,12 +75,18 @@ const handleSyncPlay = () => {
   props.player.play(videoRef.value)
 }
 
+const handleSyncForward = (offsetSeconds) => {
+  props.player.seekAndPlay(videoRef.value, offsetSeconds)
+}
+
 onMounted(() => {
   eventBus.on('sync-play', handleSyncPlay)
+  eventBus.on('sync-forward', handleSyncForward)
 })
 
 onUnmounted(() => {
   eventBus.off('sync-play', handleSyncPlay)
+  eventBus.off('sync-forward', handleSyncForward)
 })
 </script>
 

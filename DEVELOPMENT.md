@@ -44,11 +44,11 @@ VideoSynchronizer/
 
 - **src/components/SettingsPanel.vue**
   - 全局设置面板，负责视频 URL 输入、本地文件上传、同步播放控制等。
-  - 通过 `eventBus` 发送 `sync-play` 信号。
+  - 通过 `eventBus` 发送 `sync-forward` 信号（带时间偏移）。
 
 - **src/components/VideoPane.vue**
   - 视频展示窗口，负责渲染 `iframe` (YouTube) 或 `video` (本地/直链) 标签。
-  - 监听 `eventBus` 的 `sync-play` 事件执行播放。
+  - 监听 `eventBus` 的 `sync-forward` 事件执行播放。
   - **交互限制**：仅限顶部 `drag-handle` 区域触发窗口拖拽。
   - 集成了 `SideToolbar` 快捷工具。
 
@@ -65,7 +65,7 @@ VideoSynchronizer/
 ### 数据流向
 
 1. **视频加载**: `SettingsPanel` 或 `SideToolbar` -> `player.load()` -> 更新 `store` 实例。
-2. **同步播放**: `SettingsPanel` -> `eventBus.emit('sync-play')` -> `VideoPane` 接收并调用 `player.play()`。
+2. **同步播放**: `SettingsPanel` -> `eventBus.emit('sync-forward', offset)` -> `VideoPane` 接收并调用 `player.seekAndPlay()`。
 3. **窗口交互**: `App.vue` 全局监听鼠标 -> `useWindowManagement` 更新 `windows` 坐标 -> `VideoPane` 响应渲染。
 
 ### 路径别名

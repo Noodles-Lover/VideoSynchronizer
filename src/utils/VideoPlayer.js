@@ -16,9 +16,14 @@ export class VideoPlayer {
     console.log('Base player load called with:', source);
   }
 
-  // 修改：提供默認實現
+  // 修改：提供默认实现
   play(videoElement) {
     console.log('Base player play called');
+  }
+
+  // 新增：跳转并播放逻辑
+  seekAndPlay(videoElement, offsetSeconds) {
+    console.log('Base player seekAndPlay called with offset:', offsetSeconds);
   }
 }
 
@@ -62,6 +67,20 @@ export class YouTubeVideo extends VideoPlayer {
       console.error('Invalid YouTube URL:', this.embedUrl);
     }
   }
+
+  seekAndPlay(videoElement, offsetSeconds) {
+    const totalStartTime = (this.startTime || 0) + offsetSeconds;
+    this.embedUrl = buildYouTubeEmbed(this.rawUrl, totalStartTime, false);
+    if (!this.embedUrl) return;
+    try {
+      const u = new URL(this.embedUrl);
+      u.searchParams.set('autoplay', '1');
+      u.searchParams.set('sync', Date.now());
+      this.embedUrl = u.toString();
+    } catch (e) {
+      console.error('Invalid YouTube URL in seekAndPlay:', this.embedUrl);
+    }
+  }
 }
 
 export class LocalVideo extends VideoPlayer {
@@ -86,6 +105,27 @@ export class LocalVideo extends VideoPlayer {
           videoElement.currentTime = this.startTime;
         }
         videoElement.play().catch(e => console.warn('Local play failed:', e));
+      };
+
+      if (videoElement.src !== this.embedUrl) {
+        videoElement.src = this.embedUrl;
+        videoElement.load();
+        videoElement.onloadedmetadata = () => {
+          startPlaying();
+          videoElement.onloadedmetadata = null;
+        };
+      } else {
+        startPlaying();
+      }
+    }
+  }
+
+  seekAndPlay(videoElement, offsetSeconds) {
+    if (videoElement) {
+      const targetTime = (this.startTime || 0) + offsetSeconds;
+      const startPlaying = () => {
+        videoElement.currentTime = targetTime;
+        videoElement.play().catch(e => console.warn('Local seekAndPlay failed:', e));
       };
 
       if (videoElement.src !== this.embedUrl) {
@@ -127,6 +167,27 @@ export class DirectLinkVideo extends VideoPlayer {
         videoElement.src = this.embedUrl;
         videoElement.load();
         // 如果切換了源，等待元數據加載後再跳轉時間並播放
+        videoElement.onloadedmetadata = () => {
+          startPlaying();
+          videoElement.onloadedmetadata = null;
+        };
+      } else {
+        startPlaying();
+      }
+    }
+  }
+
+  seekAndPlay(videoElement, offsetSeconds) {
+    if (videoElement) {
+      const targetTime = (this.startTime || 0) + offsetSeconds;
+      const startPlaying = () => {
+        videoElement.currentTime = targetTime;
+        videoElement.play().catch(e => console.warn('Direct seekAndPlay failed:', e));
+      };
+
+      if (videoElement.src !== this.embedUrl) {
+        videoElement.src = this.embedUrl;
+        videoElement.load();
         videoElement.onloadedmetadata = () => {
           startPlaying();
           videoElement.onloadedmetadata = null;
