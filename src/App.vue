@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { store } from '@/utils/store'
+import { createPlayer } from '@/utils/VideoPlayer'
 import { useWindowManagement } from '@/utils/useWindowManagement'
 import { useYouTube } from '@/utils/useYouTube'
 import SettingsPanel from '@/components/SettingsPanel.vue'
@@ -21,6 +22,32 @@ const {
   onWindowsMouseMove, 
   onWindowsMouseUp 
 } = useWindowManagement()
+
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search)
+  
+  const vUrl = params.get('v_url')
+  const vTime = params.get('v_t')
+  const aUrl = params.get('a_url')
+  const aTime = params.get('a_t')
+  const fMin = params.get('f_m')
+  const fSec = params.get('f_s')
+
+  if (vUrl) {
+    const player = createPlayer(vUrl)
+    if (vTime) player.startTime = Number(vTime)
+    store.viewer = player
+  }
+
+  if (aUrl) {
+    const player = createPlayer(aUrl)
+    if (aTime) player.startTime = Number(aTime)
+    store.anime = player
+  }
+
+  if (fMin) store.forwardMinutes = Number(fMin)
+  if (fSec) store.forwardSeconds = Number(fSec)
+})
 </script>
 
 <template>

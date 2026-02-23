@@ -64,6 +64,7 @@
           <span class="opacity-value">{{ Math.round(store.settingsOpacity * 100) }}%</span>
         </div>
       </div>
+
       <div class="actions">
         <div class="sync-play-group">
           <button class="sync-play-btn" @click="handleSyncPlay">
@@ -80,6 +81,11 @@
             <button class="reset-btn" @click="resetForwardTime" title="重置时间">↺</button>
           </div>
         </div>
+      </div>
+      <div class="field" style="margin-top: 1vw;">
+        <button class="export-btn" @click="handleExportLink">
+          🔗 导出视频配置链接
+        </button>
       </div>
     </div>
   </div>
@@ -142,6 +148,71 @@ const handleSyncPlay = () => {
 const resetForwardTime = () => {
   store.forwardMinutes = 0
   store.forwardSeconds = 0
+}
+
+const handleExportLink = async (e) => {
+  const baseUrl = 'https://noodles-lover.github.io/VideoSynchronizer/'
+  const params = new URLSearchParams()
+  
+  if (store.viewer.type !== 'local' && store.viewer.rawUrl) {
+    params.append('v_url', store.viewer.rawUrl)
+    if (store.viewer.startTime > 0) params.append('v_t', store.viewer.startTime)
+  }
+  
+  if (store.anime.type !== 'local' && store.anime.rawUrl) {
+    params.append('a_url', store.anime.rawUrl)
+    if (store.anime.startTime > 0) params.append('a_t', store.anime.startTime)
+  }
+  
+  if (store.forwardMinutes > 0) params.append('f_m', store.forwardMinutes)
+  if (store.forwardSeconds > 0) params.append('f_s', store.forwardSeconds)
+  
+  const fullUrl = `${baseUrl}?${params.toString()}`
+  
+  const copyToClipboard = async (text) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return true
+      } catch (err) {
+        console.warn('Clipboard API failed', err)
+      }
+    }
+    
+    // Fallback for mobile/older browsers
+    const textArea = document.createElement("textarea")
+    textArea.value = text
+    textArea.style.position = "fixed" // Avoid scrolling to bottom
+    textArea.style.left = "-9999px"
+    textArea.style.top = "0"
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    
+    try {
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textArea)
+      return successful
+    } catch (err) {
+      document.body.removeChild(textArea)
+      return false
+    }
+  }
+
+  const success = await copyToClipboard(fullUrl)
+  
+  if (success) {
+    const btn = e.target.closest('button')
+    if (btn) {
+      const originalText = btn.innerHTML
+      btn.innerHTML = '✅ 已复制！'
+      setTimeout(() => {
+        btn.innerHTML = originalText
+      }, 2000)
+    }
+  } else {
+    prompt('请手动复制链接：', fullUrl)
+  }
 }
 </script>
 
@@ -264,6 +335,28 @@ const resetForwardTime = () => {
   color: #666;
   transform: rotate(-90deg);
 }
+
+.export-btn {
+  width: 100%;
+  padding: 0.8vw;
+  background: #0969da;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(13px, 1.1vw, 18px);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5vw;
+}
+
+.export-btn:hover {
+  background: #0356b6;
+}
+
 .sync-play-btn:hover { background: #2c974b; transform: translateY(-1px); }
 .sync-play-btn:active { background: #298e46; transform: translateY(0); box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); }
 .sync-play-btn span { font-size: 1vw; }
