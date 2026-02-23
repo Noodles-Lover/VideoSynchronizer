@@ -61,17 +61,25 @@ const {
 </template>
 
 <style scoped>
-.app-root { width: 100vw; height: 100vh; overflow: hidden; }
+.app-root { 
+  width: 100%; 
+  height: 100%;
+  height: 100dvh; /* 适配移动端/平板动态视口高度 */
+  overflow: hidden; 
+}
 
 /* 窗口系统：纯视频，无边框/标题栏 */
 .windows { position: absolute; inset: 0; }
 
 .is-fullscreen {
   position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important; /* 适配移动端/平板动态视口高度 */
   transform: none !important;
+  border-radius: 0 !important;
 }
 
 .drag-cursor-hint {
