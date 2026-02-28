@@ -123,20 +123,46 @@ export class LocalVideo extends VideoPlayer {
   seekAndPlay(videoElement, offsetSeconds) {
     if (videoElement) {
       const targetTime = (this.startTime || 0) + offsetSeconds;
-      const startPlaying = () => {
-        videoElement.currentTime = targetTime;
-        videoElement.play().catch(e => console.warn('Local seekAndPlay failed:', e));
+      const playSafely = () => {
+        const p = videoElement.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(() => {});
+        }
       };
-
+      const onSeeked = () => {
+        videoElement.removeEventListener('seeked', onSeeked);
+        if (videoElement.readyState >= 3) {
+          playSafely();
+        } else {
+          const onCanPlay = () => {
+            videoElement.removeEventListener('canplay', onCanPlay);
+            playSafely();
+          };
+          videoElement.addEventListener('canplay', onCanPlay, { once: true });
+          setTimeout(() => {
+            videoElement.removeEventListener('canplay', onCanPlay);
+            playSafely();
+          }, 500);
+        }
+      };
       if (videoElement.src !== this.embedUrl) {
         videoElement.src = this.embedUrl;
         videoElement.load();
-        videoElement.onloadedmetadata = () => {
-          startPlaying();
-          videoElement.onloadedmetadata = null;
-        };
+        videoElement.addEventListener('loadedmetadata', () => {
+          videoElement.currentTime = targetTime;
+          videoElement.addEventListener('seeked', onSeeked, { once: true });
+        }, { once: true });
       } else {
-        startPlaying();
+        if (videoElement.readyState < 1) {
+          videoElement.load();
+          videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.currentTime = targetTime;
+            videoElement.addEventListener('seeked', onSeeked, { once: true });
+          }, { once: true });
+        } else {
+          videoElement.currentTime = targetTime;
+          videoElement.addEventListener('seeked', onSeeked, { once: true });
+        }
       }
     }
   }
@@ -180,20 +206,46 @@ export class DirectLinkVideo extends VideoPlayer {
   seekAndPlay(videoElement, offsetSeconds) {
     if (videoElement) {
       const targetTime = (this.startTime || 0) + offsetSeconds;
-      const startPlaying = () => {
-        videoElement.currentTime = targetTime;
-        videoElement.play().catch(e => console.warn('Direct seekAndPlay failed:', e));
+      const playSafely = () => {
+        const p = videoElement.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(() => {});
+        }
       };
-
+      const onSeeked = () => {
+        videoElement.removeEventListener('seeked', onSeeked);
+        if (videoElement.readyState >= 3) {
+          playSafely();
+        } else {
+          const onCanPlay = () => {
+            videoElement.removeEventListener('canplay', onCanPlay);
+            playSafely();
+          };
+          videoElement.addEventListener('canplay', onCanPlay, { once: true });
+          setTimeout(() => {
+            videoElement.removeEventListener('canplay', onCanPlay);
+            playSafely();
+          }, 500);
+        }
+      };
       if (videoElement.src !== this.embedUrl) {
         videoElement.src = this.embedUrl;
         videoElement.load();
-        videoElement.onloadedmetadata = () => {
-          startPlaying();
-          videoElement.onloadedmetadata = null;
-        };
+        videoElement.addEventListener('loadedmetadata', () => {
+          videoElement.currentTime = targetTime;
+          videoElement.addEventListener('seeked', onSeeked, { once: true });
+        }, { once: true });
       } else {
-        startPlaying();
+        if (videoElement.readyState < 1) {
+          videoElement.load();
+          videoElement.addEventListener('loadedmetadata', () => {
+            videoElement.currentTime = targetTime;
+            videoElement.addEventListener('seeked', onSeeked, { once: true });
+          }, { once: true });
+        } else {
+          videoElement.currentTime = targetTime;
+          videoElement.addEventListener('seeked', onSeeked, { once: true });
+        }
       }
     }
   }
