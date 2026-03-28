@@ -17,8 +17,15 @@ VideoSynchronizer/
 │   ├── utils/              # 逻辑与工具函数
 │   │   ├── store.js            # 全局状态管理 (Reactive Store)
 │   │   ├── VideoPlayer.js      # 视频播放器 OOP 逻辑
+│   │   ├── videoPlayers/       # 视频播放器子类实现
+│   │   │   ├── BaseVideoPlayer.js    # 视频播放器基类
+│   │   │   ├── YouTubeVideo.js       # YouTube 视频播放器
+│   │   │   ├── BilibiliVideo.js      # B站视频播放器
+│   │   │   ├── LocalVideo.js         # 本地视频播放器
+│   │   │   └── DirectLinkVideo.js    # 直链视频播放器
 │   │   ├── eventBus.js         # 全局事件总线
 │   │   ├── useYouTube.js       # YouTube 解析与 Embed 构建工具
+│   │   ├── useBilibili.js      # B站解析与 Embed 构建工具
 │   │   └── useWindowManagement.js # 窗口拖拽、缩放管理逻辑
 │   ├── App.vue             # 根组件
 │   └── main.js             # 入口文件
@@ -30,24 +37,38 @@ VideoSynchronizer/
 ### 核心文件说明
 
 - **src/utils/VideoPlayer.js**
-  - 视频播放器的抽象体系。
-  - `VideoPlayer`: 抽象基类，定义了 `displayText`, `rawUrl`, `embedUrl`, `startTime` 等属性。
-  - `YouTubeVideo`: 继承自 `VideoPlayer`，实现 YouTube 特有的加载（ID 提取、时间戳处理）和播放逻辑。
-  - `LocalVideo`: 继承自 `VideoPlayer`，专门处理本地文件（Blob URL）的加载与播放。
-  - `DirectLinkVideo`: 继承自 `VideoPlayer`，处理网络视频直链（如 .mp4）的加载与播放。
-  - `createPlayer`: 工厂函数，根据输入自动识别类型并创建实例。
+  - 视频播放器的工厂函数和统一导出。
+  - `createPlayer`: 工厂函数，根据输入自动识别类型（YouTube、Bilibili、直链、本地）并创建对应实例。
+  - 导出所有播放器类：`VideoPlayer`, `YouTubeVideo`, `BilibiliVideo`, `LocalVideo`, `DirectLinkVideo`。
+
+- **src/utils/videoPlayers/BaseVideoPlayer.js**
+  - 视频播放器抽象基类，定义了 `displayText`, `rawUrl`, `embedUrl`, `startTime`, `type` 等属性。
+  - 提供默认的 `load()`, `play()`, `seekAndPlay()` 方法实现。
+
+- **src/utils/videoPlayers/YouTubeVideo.js**
+  - 继承自 `VideoPlayer`，实现 YouTube 特有的加载（ID 提取、时间戳处理）和播放逻辑。
+
+- **src/utils/videoPlayers/BilibiliVideo.js**
+  - 继承自 `VideoPlayer`，实现 B 站视频特有的加载（BV 号提取、时间戳处理）和播放逻辑。
+  - 支持极简界面模式，可切换播放器样式。
+
+- **src/utils/videoPlayers/LocalVideo.js**
+  - 继承自 `VideoPlayer`，专门处理本地文件（Blob URL）的加载与播放。
+
+- **src/utils/videoPlayers/DirectLinkVideo.js**
+  - 继承自 `VideoPlayer`，处理网络视频直链（如 .mp4）的加载与播放。
 
 - **src/utils/store.js**
   - 使用 Vue 3 `reactive` 管理全局状态。
   - 存储 `viewer` (视听方) 和 `anime` (动漫方) 的 `VideoPlayer` 实例。
-  - 存储 UI 配置：`forcedTop` (强制置顶), `fullScreen` (全屏状态), `settingsPosition` (面板位置), `settingsOpacity` (面板透明度), `viewerOpacity/animeOpacity` (视频窗独立透明度)。
+  - 存储 UI 配置：`forcedTop` (强制置顶), `fullScreen` (全屏状态), `settingsPosition` (面板位置), `settingsOpacity` (面板透明度), `viewerOpacity/animeOpacity` (视频窗独立透明度), `bilibiliMinimalMode` (B站极简模式开关)。
 
 - **src/components/SettingsPanel.vue**
   - 全局设置面板，负责视频 URL 输入、本地文件上传、同步播放控制等。
   - 通过 `eventBus` 发送 `sync-forward` 信号（带时间偏移）。
 
 - **src/components/VideoPane.vue**
-  - 视频展示窗口，负责渲染 `iframe` (YouTube) 或 `video` (本地/直链) 标签。
+  - 视频展示窗口，负责渲染 `iframe` (YouTube、Bilibili) 或 `video` (本地/直链) 标签。
   - 监听 `eventBus` 的 `sync-forward` 事件执行播放。
   - **交互限制**：仅限顶部 `drag-handle` 区域触发窗口拖拽。
   - 集成了 `SideToolbar` 快捷工具。
@@ -59,6 +80,10 @@ VideoSynchronizer/
 
 - **src/utils/eventBus.js**
   - 基于 Vue `reactive` 的简易事件总线，用于跨组件触发「同时播放」。
+
+- **src/utils/useYouTube.js**: YouTube URL 解析与嵌入链接构建工具。
+
+- **src/utils/useBilibili.js**: B站 URL 解析与嵌入链接构建工具，支持完整分享文本解析和极简模式。
 
 - **src/utils/useWindowManagement.js**: 封装多窗口的拖拽、缩放、置顶等布局逻辑。
 

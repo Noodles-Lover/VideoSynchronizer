@@ -20,13 +20,12 @@
     <div class="content">
       <!-- 视听方或动漫方内容：纯视频 -->
       <div class="video-container">
-        <template v-if="player.type === 'youtube'">
+        <template v-if="player.type === 'youtube' || player.type === 'bilibili'">
           <iframe
             :key="player.embedUrl"
             :src="player.embedUrl"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
           ></iframe>
         </template>
         <video v-else-if="player.embedUrl" :src="player.embedUrl" controls ref="videoRef" referrerpolicy="no-referrer"></video>

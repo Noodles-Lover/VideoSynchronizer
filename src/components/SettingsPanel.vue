@@ -52,6 +52,13 @@
         </div>
       </div>
       <div class="field">
+        <label>B站极简界面</label>
+        <div class="radio-group">
+          <label><input type="radio" :value="false" v-model="store.bilibiliMinimalMode" /> 关闭</label>
+          <label><input type="radio" :value="true" v-model="store.bilibiliMinimalMode" /> 开启</label>
+        </div>
+      </div>
+      <div class="field">
         <label>面板透明度</label>
         <div class="slider-group">
           <input 
@@ -125,12 +132,22 @@ const handleUrlInput = (type) => {
     return
   }
 
-  // 使用工厂函数创建或更新播放器
+  // 如果播放器类型未变且只是时间戳修改，不重新创建播放器
   const newPlayer = createPlayer(rawUrl)
+  if (newPlayer.type === player.type) {
+    // 同类型播放器，只更新 URL，保留当前时间戳设置
+    if (player.type === 'bilibili') {
+      player.load(rawUrl, true) // B站播放器保留时间戳
+    } else {
+      player.load(rawUrl)
+    }
+    return
+  }
   
-  // 保留现有的 startTime，除非 URL 中自带了时间戳（针对 YouTube）
-  if (newPlayer.type === 'youtube' && newPlayer.startTime > 0) {
-    // YouTube 类会自动从 URL 解析 startTime
+  // 播放器类型变化，需要重新创建
+  // 保留现有的 startTime，除非 URL 中自带了时间戳（针对 YouTube 和 B 站）
+  if ((newPlayer.type === 'youtube' || newPlayer.type === 'bilibili') && newPlayer.startTime > 0) {
+    // YouTube/B站 类会自动从 URL 解析 startTime
   } else {
     newPlayer.startTime = player.startTime
   }
