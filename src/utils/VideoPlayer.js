@@ -6,8 +6,8 @@ import { LocalVideo } from './videoPlayers/LocalVideo.js';
 import { DirectLinkVideo } from './videoPlayers/DirectLinkVideo.js';
 import { BilibiliVideo } from './videoPlayers/BilibiliVideo.js';
 
-const { isYouTube } = useYouTube();
-const { isBilibili } = useBilibili();
+const { isYouTube, getNextYouTubeUrl } = useYouTube();
+const { isBilibili, getNextBilibiliUrl } = useBilibili();
 
 export function createPlayer(source) {
   if (!source) {
@@ -33,6 +33,16 @@ export function createPlayer(source) {
     p.load(source);
     return p;
   }
+}
+
+export function getNextEpisodeUrl(url) {
+  if (!url) return url
+  if (isYouTube(url)) {
+    return getNextYouTubeUrl(url)
+  } else if (isBilibili(url)) {
+    return getNextBilibiliUrl(url)
+  }
+  return url
 }
 
 export { YouTubeVideo, LocalVideo, DirectLinkVideo, BilibiliVideo };

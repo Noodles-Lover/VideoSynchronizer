@@ -19,15 +19,15 @@ export class BilibiliVideo extends VideoPlayer {
     const timestamp = preserveStartTime ? this.startTime : getBilibiliTimestamp(url);
     const cleanUrl = stripBilibiliTimestamp(url);
     
-    // 只有當 URL 發生變化時，才更新 rawUrl 和 startTime
+    // URL 发生变化时更新
     if (this.rawUrl !== cleanUrl) {
       this.rawUrl = cleanUrl;
-      this.startTime = timestamp; // 总是设置 startTime，包括 0
-      this.updateEmbedUrl(); // URL 变化时更新
-    } else if (this.startTime !== timestamp && !preserveStartTime) {
-      // URL 相同但时间戳不同，只更新 startTime，不更新 embedUrl
       this.startTime = timestamp;
-      // 不调用 updateEmbedUrl()，避免刷新
+      this.updateEmbedUrl();
+    } else if (this.startTime !== timestamp && !preserveStartTime) {
+      // URL 相同但时间戳不同，只更新 startTime
+      this.startTime = timestamp;
+      this.updateEmbedUrl();
     }
     
     this.displayText = this.rawUrl;

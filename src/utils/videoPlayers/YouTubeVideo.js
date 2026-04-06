@@ -7,26 +7,34 @@ export class YouTubeVideo extends VideoPlayer {
   constructor() {
     super();
     this.type = 'youtube';
+    this.isMinimal = false; // 极简模式开关
+  }
+
+  setMinimalMode(isMinimal) {
+    this.isMinimal = isMinimal;
+    this.updateEmbedUrl(); // 切换模式时更新嵌入 URL
   }
 
   load(url) {
     const timestamp = getYouTubeTimestamp(url);
     const cleanUrl = stripYouTubeTimestamp(url);
     
-    // 只有當 URL 發生變化，或者 URL 中包含新的時間戳時，才更新 startTime
-    if (this.rawUrl !== cleanUrl || timestamp > 0) {
+    // URL 发生变化时更新
+    if (this.rawUrl !== cleanUrl) {
       this.rawUrl = cleanUrl;
-      if (timestamp > 0) {
-        this.startTime = timestamp;
-      }
+      this.startTime = timestamp;
+      this.updateEmbedUrl();
+    } else if (timestamp > 0) {
+      // URL 相同但有新的时间戳
+      this.startTime = timestamp;
+      this.updateEmbedUrl();
     }
     
     this.displayText = this.rawUrl;
-    this.updateEmbedUrl();
   }
 
   updateEmbedUrl() {
-    this.embedUrl = buildYouTubeEmbed(this.rawUrl, this.startTime, false);
+    this.embedUrl = buildYouTubeEmbed(this.rawUrl, this.startTime, false, this.isMinimal);
   }
 
   play(videoElement) {
@@ -46,7 +54,7 @@ export class YouTubeVideo extends VideoPlayer {
 
   seekAndPlay(videoElement, offsetSeconds) {
     const totalStartTime = (this.startTime || 0) + offsetSeconds;
-    this.embedUrl = buildYouTubeEmbed(this.rawUrl, totalStartTime, false);
+    this.embedUrl = buildYouTubeEmbed(this.rawUrl, totalStartTime, false, this.isMinimal);
     if (!this.embedUrl) return;
     try {
       const u = new URL(this.embedUrl);
@@ -56,5 +64,11 @@ export class YouTubeVideo extends VideoPlayer {
     } catch (e) {
       console.error('Invalid YouTube URL in seekAndPlay:', this.embedUrl);
     }
+  }
+
+  nextVideo() {
+    // 使用 YouTube API 的 nextVideo() 方法切换到下一集
+    // 这需要通过 iframe API 调用，这里返回一个标志表示需要切换
+    this.updateEmbedUrl();
   }
 }

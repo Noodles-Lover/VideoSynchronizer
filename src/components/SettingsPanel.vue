@@ -59,6 +59,13 @@
         </div>
       </div>
       <div class="field">
+        <label>YouTube极简界面</label>
+        <div class="radio-group">
+          <label><input type="radio" :value="false" v-model="store.youTubeMinimalMode" /> 关闭</label>
+          <label><input type="radio" :value="true" v-model="store.youTubeMinimalMode" /> 开启</label>
+        </div>
+      </div>
+      <div class="field">
         <label>面板透明度</label>
         <div class="slider-group">
           <input 
@@ -90,6 +97,11 @@
         </div>
       </div>
       <div class="field" style="margin-top: 1vw;">
+        <button class="next-episode-btn" @click="handleNextEpisode">
+         ⏭️ 下一集
+        </button>
+      </div>
+      <div class="field" style="margin-top: 1vw;">
         <button class="export-btn" @click="handleExportLink">
           🔗 导出视频配置链接
         </button>
@@ -103,7 +115,7 @@ import { ref } from 'vue'
 import { store } from '@/utils/store'
 import { useYouTube } from '@/utils/useYouTube'
 import { eventBus } from '@/utils/eventBus'
-import { createPlayer, LocalVideo } from '@/utils/VideoPlayer'
+import { createPlayer, LocalVideo, getNextEpisodeUrl } from '@/utils/VideoPlayer'
 
 const showSettings = ref(true)
 const { isYouTube } = useYouTube()
@@ -160,6 +172,26 @@ const handleSyncPlay = () => {
   const totalOffset = (store.forwardMinutes || 0) * 60 + (store.forwardSeconds || 0)
   // 发送带有偏移量的同步信号
   eventBus.emit('sync-forward', totalOffset)
+}
+
+const handleNextEpisode = () => {
+  if (store.viewer.type === 'youtube' || store.viewer.type === 'bilibili') {
+    const newUrl = getNextEpisodeUrl(store.viewer.rawUrl)
+    if (newUrl && newUrl !== store.viewer.rawUrl) {
+      const newPlayer = createPlayer(newUrl)
+      newPlayer.startTime = store.viewer.startTime
+      store.viewer = newPlayer
+    }
+  }
+  
+  if (store.anime.type === 'youtube' || store.anime.type === 'bilibili') {
+    const newUrl = getNextEpisodeUrl(store.anime.rawUrl)
+    if (newUrl && newUrl !== store.anime.rawUrl) {
+      const newPlayer = createPlayer(newUrl)
+      newPlayer.startTime = store.anime.startTime
+      store.anime = newPlayer
+    }
+  }
 }
 
 const resetForwardTime = () => {
@@ -377,4 +409,25 @@ const handleExportLink = async (e) => {
 .sync-play-btn:hover { background: #2c974b; transform: translateY(-1px); }
 .sync-play-btn:active { background: #298e46; transform: translateY(0); box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); }
 .sync-play-btn span { font-size: 1vw; }
+
+.next-episode-btn {
+  width: 100%;
+  padding: 0.8vw;
+  background: #9333ea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: clamp(13px, 1.1vw, 18px);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5vw;
+}
+
+.next-episode-btn:hover {
+  background: #7e22ce;
+}
 </style>

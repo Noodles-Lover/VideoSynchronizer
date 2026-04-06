@@ -61,13 +61,14 @@ export function useYouTube() {
   /**
    * 构建 YouTube 嵌入 URL
    */
-  const buildYouTubeEmbed = (url, startTime = 0, autoplay = false) => {
+  const buildYouTubeEmbed = (url, startTime = 0, autoplay = false, isMinimal = false) => {
     const id = getYouTubeId(url)
     if (!id) return ''
     
     const params = new URLSearchParams()
     if (startTime > 0) params.append('start', startTime)
     if (autoplay) params.append('autoplay', '1')
+    if (isMinimal) params.append('controls', '0')
     
     return `https://www.youtube.com/embed/${id}?${params.toString()}`
   }
@@ -75,11 +76,44 @@ export function useYouTube() {
   // 简易判断是否为 YouTube（域名匹配）
   const isYouTube = (url) => /youtube\.com|youtu\.be/.test((url || '').trim())
 
+  // 提取 YouTube 列表 ID 和索引
+  const getYouTubePlaylistInfo = (url) => {
+    try {
+      const u = new URL(url.includes('://') ? url : `https://${url}`)
+      const list = u.searchParams.get('list')
+      const index = u.searchParams.get('index')
+      const start = u.searchParams.get('start')
+      return { list, index: index ? parseInt(index) : null, start }
+    } catch (e) {
+      return { list: null, index: null, start: null }
+    }
+  }
+
+  // 构建带下一集索引的 YouTube URL
+  const getNextYouTubeUrl = (url) => {
+    try {
+      const u = new URL(url.includes('://') ? url : `https://${url}`)
+      const list = u.searchParams.get('list')
+      const index = u.searchParams.get('index')
+      
+      if (list) {
+        const newIndex = index ? parseInt(index) + 1 : 1
+        u.searchParams.set('index', newIndex.toString())
+      }
+      
+      return u.toString()
+    } catch (e) {
+      return url
+    }
+  }
+
   return {
     getYouTubeId,
     getYouTubeTimestamp,
     stripYouTubeTimestamp,
     buildYouTubeEmbed,
-    isYouTube
+    isYouTube,
+    getYouTubePlaylistInfo,
+    getNextYouTubeUrl
   }
 }

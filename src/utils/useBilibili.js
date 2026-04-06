@@ -24,8 +24,18 @@ export function useBilibili() {
           return shortMatch[1]
         }
       }
+      // 尝试从 URL 原始字符串中直接提取 BV 号（用于处理非标准 URL 的分享文本）
+      const directMatch = (actualUrl || '').match(/BV[a-zA-Z0-9]{10}/);
+      if (directMatch) {
+        return directMatch[0];
+      }
       return ''
     } catch (e) {
+      // 如果 URL 解析失败，尝试直接从原始字符串中提取 BV 号
+      const directMatch = (actualUrl || '').match(/BV[a-zA-Z0-9]{10}/);
+      if (directMatch) {
+        return directMatch[0];
+      }
       return ''
     }
   }
@@ -38,7 +48,7 @@ export function useBilibili() {
       const urlMatch = url.match(/(https?:\/\/[^\s]+)/);
       const actualUrl = urlMatch ? urlMatch[1] : url;
       
-      const u = new URL(actualUrl.includes('://') ? actualUrl : 'https://' + actualUrl)
+      const u = new URL((actualUrl || '').trim())
       const t = u.searchParams.get('t')
       if (t) {
         // 处理 3750s 或 3750 格式
@@ -60,7 +70,7 @@ export function useBilibili() {
       const urlMatch = url.match(/(https?:\/\/[^\s]+)/);
       const actualUrl = urlMatch ? urlMatch[1] : url;
       
-      const u = new URL(actualUrl.includes('://') ? actualUrl : `https://${actualUrl}`)
+      const u = new URL((actualUrl || '').trim())
       u.searchParams.delete('t')
       const cleanedUrl = u.toString()
       
@@ -79,10 +89,16 @@ export function useBilibili() {
     const bvid = getBilibiliId(url)
     if (!bvid) return ''
     
+    // 从 URL 中提取分集参数 p
+    const urlMatch = url.match(/(https?:\/\/[^\s]+)/);
+    const actualUrl = urlMatch ? urlMatch[1] : url;
+    const u = new URL((actualUrl || '').trim())
+    const p = u.searchParams.get('p') || '1' // 使用 URL 中的 p 参数，没有则默认第1集
+    
     const baseUrl = isMinimal ? 'bilibili.com/blackboard/html5mobileplayer.html' : 'player.bilibili.com/player.html'
     const params = new URLSearchParams()
     params.append('bvid', bvid)
-    params.append('p', '1') // 默认第1集
+    params.append('p', p) // 使用提取的分集参数
     
     // 添加时间戳参数，使用 0.001 替代 0
     if (startTime > 0) {
@@ -109,11 +125,41 @@ export function useBilibili() {
   // 判断是否为 B 站链接
   const isBilibili = (url) => /bilibili\.com/.test((url || '').trim())
 
+  // 提取 B 站分集参数
+  const getBilibiliEpisodeInfo = (url) => {
+    try {
+      const urlMatch = url.match(/(https?:\/\/[^\s]+)/);
+      const actualUrl = urlMatch ? urlMatch[1] : url;
+      const u = new URL((actualUrl || '').trim())
+      const p = u.searchParams.get('p')
+      return { p: p ? parseInt(p) : null }
+    } catch (e) {
+      return { p: null }
+    }
+  }
+
+  // 构建下一集的 B 站 URL
+  const getNextBilibiliUrl = (url) => {
+    try {
+      const urlMatch = url.match(/(https?:\/\/[^\s]+)/);
+      const actualUrl = urlMatch ? urlMatch[1] : url;
+      const u = new URL((actualUrl || '').trim())
+      const p = u.searchParams.get('p')
+      const newP = p ? parseInt(p) + 1 : 2
+      u.searchParams.set('p', newP.toString())
+      return u.toString()
+    } catch (e) {
+      return url
+    }
+  }
+
   return {
     getBilibiliId,
     getBilibiliTimestamp,
     stripBilibiliTimestamp,
     buildBilibiliEmbed,
-    isBilibili
+    isBilibili,
+    getBilibiliEpisodeInfo,
+    getNextBilibiliUrl
   }
 }
